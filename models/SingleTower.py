@@ -46,11 +46,11 @@ class STmodel(object):
 		# 	tf.nn.softmax_cross_entropy_with_logits(logits=self._network, labels=self.labels)
 		# )
 		self._loss_summary = tf.summary.scalar("loss", self._loss)
-		self._accuracy = tf.reduce_mean(
-			tf.cast(
-				tf.equal(tf.argmax(tf.nn.softmax(self._network), 1), tf.argmax(tf.nn.softmax(self.labels), 1)), tf.float32
-			)
-		)
+		# self._accuracy = tf.reduce_mean(
+		# 	tf.cast(
+		# 		tf.equal(tf.argmax(tf.nn.softmax(self._network), 1), tf.argmax(tf.nn.softmax(self.labels), 1)), tf.float32
+		# 	)
+		# )
 		self._accuracy = tf.reduce_mean(
 			tf.cast(
 				tf.reduce_sum(tf.floor(self._network)), tf.float32
