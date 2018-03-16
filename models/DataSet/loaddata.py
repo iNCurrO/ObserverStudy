@@ -7,8 +7,6 @@ import numpy as np
 from scipy import io
 from random import shuffle
 
-worktypelist = ['GAN']
-
 
 def readimage(fname):
 	# queue = tf.train.string_input_producer(list(fname), shuffle=False, seed=None)
@@ -32,46 +30,51 @@ def readimage(fname):
 def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 	assert (valrate <= 1.0) & (testrate <= 1.0) & (valrate+testrate <= 1.0), 'From loaddata ' \
 																									 'Validation rate or testrate can\'t over 1'
-	if dataname == 'observer':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_ramp', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observerhann':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_hann', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observershepp':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_shepp', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observerlongi':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_2mm_longi_ramp', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observerlongihann':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_2mm_longi_hann', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observerlongishepp':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_2mm_longi_shepp', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observer1mmtransramp':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_1mm_trans_ramp', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	elif dataname == 'observer1mmtranshann':
-		data_dir_ = glob.glob(os.path.join(dir_, 'Observer_1mm_trans_hann', '*'))
-		data_dir_ = [d for d in data_dir_ if os.path.isdir(d)]
-	else:
-		data_dir_ = glob.glob(os.path.join(dir_, dataname, "*"))
-		assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
-
-	numlabel = len(data_dir_)
+	data_dir_ = []
+	label = np.zeros([4, 0])
+	for dataset in dataname:
+		if dataset == 'observer2mmtransramp':
+			data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_ramp', '*'))
+			mat_file = io.loadmat(os.path.join(dir_, 'Observer_2mm_trans_ramp', 'label.mat'))
+			data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+		elif dataset == 'observer2mmtranshann':
+			data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_hann', '*'))
+			mat_file = io.loadmat(os.path.join(dir_, 'Observer_2mm_trans_hann', 'label.mat'))
+			data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+		elif dataset == 'observer2mmlongiramp':
+			data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_2mm_longi_ramp', '*'))
+			data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+		elif dataset == 'observer2mmlongihann':
+			data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_2mm_longi_hann', '*'))
+			data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+		elif dataset == 'observer1mmtransramp':
+			data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_1mm_trans_ramp', '*'))
+			mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_ramp', 'label.mat'))
+			data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+		elif dataset == 'observer1mmtranshann':
+			data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_1mm_trans_hann', '*'))
+			mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_hann', 'label.mat'))
+			data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+		else:
+			data_dir_ = glob.glob(os.path.join(dir_, dataset, "*"))
+			assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
+		label = np.concatenate([label, mat_file['label']], axis=1)
+		data_dir_ = data_dir_ + data_dir_temp
+	numlabel = 4
 	datalist1 = [[], [], []]
 	datalist2 = [[], [], []]
 	datalist3 = [[], [], []]
 	datalist4 = [[], [], []]
 	binarylabellist = [np.array([]).reshape(0, numlabel) for _ in range(3)]
-	mat_file = io.loadmat(os.path.join(dir_, 'Observer_2mm_trans_ramp', 'label.mat'))
-	label = mat_file['label']
-	templist1 = glob.glob(os.path.join(data_dir_[0], '*'))
-	templist2 = glob.glob(os.path.join(data_dir_[1], '*'))
-	templist3 = glob.glob(os.path.join(data_dir_[2], '*'))
-	templist4 = glob.glob(os.path.join(data_dir_[3], '*'))
+	templist1 = []
+	templist2 = []
+	templist3 = []
+	templist4 = []
+	for i in range(len(dataname)):
+		templist1 = templist1 + glob.glob(os.path.join(data_dir_[0+4*i], '*'))
+		templist2 = templist2 + glob.glob(os.path.join(data_dir_[1+4*i], '*'))
+		templist3 = templist3 + glob.glob(os.path.join(data_dir_[2+4*i], '*'))
+		templist4 = templist4 + glob.glob(os.path.join(data_dir_[3+4*i], '*'))
 	datanum = len(templist1)
 	numval = int(np.floor(valrate * datanum))
 	numtest = int(np.floor(testrate * datanum))

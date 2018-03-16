@@ -13,34 +13,28 @@ def show_all_variables():
 	slim.model_analyzer.analyze_vars(model_vars, print_info=True)
 #
 
+
 def main(_):
 	with tf.Session() as sess:
-		ckdir = './cp4'
-		srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observer')
+		ckdir = './cp2'
+		srcnn = STmodel(sess, checkpoint_dir=ckdir,
+							sample_dir=None, dataset_name=['observer2mmtransramp', 'observer1mmtransramp'])
 		show_all_variables()
 		srcnn.train()
+		srcnn.resetdata(dataset_name=['observer2mmtransramp'])
 		srcnn.loadandsampling()
-		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerhann')
-		# show_all_variables()
-		# srcnn.loadandsampling()
-		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observershepp')
-		# show_all_variables()
-		# srcnn.loadandsampling()
+		srcnn.resetdata(dataset_name=['observer2mmtranshann'])
+		srcnn.loadandsampling()
 		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongi')
 		# show_all_variables()
 		# srcnn.loadandsampling()
 		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongihann')
 		# show_all_variables()
 		# srcnn.loadandsampling()
-		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongishepp')
-		# show_all_variables()
-		# srcnn.loadandsampling()
-		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observer1mmtransramp')
-		# show_all_variables()
-		# srcnn.loadandsampling()
-		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observer1mmtranshann')
-		# show_all_variables()
-		# srcnn.loadandsampling()
+		srcnn.resetdata(dataset_name=['observer1mmtransramp'])
+		srcnn.loadandsampling()
+		srcnn.resetdata(dataset_name=['observer1mmtranshann'])
+		srcnn.loadandsampling()
 
 # def main(_):
 # 	with tf.Session() as sess:
