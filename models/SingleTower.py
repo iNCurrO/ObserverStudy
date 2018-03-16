@@ -36,24 +36,16 @@ class STmodel(object):
 		self.labels = tf.placeholder(
 			tf.float32, [None, 4]
 		)
-		self._network = self.network(self.inputs1, self.inputs2, self.inputs3, self.inputs4, tf.argmax(self.labels))
+		self._network = self.network(self.inputs1, self.inputs2, self.inputs3, self.inputs4)
 		t_vars = tf.trainable_variables()
-		self._loss = tf.reduce_mean(
-			tf.nn.sigmoid_cross_entropy_with_logits(logits=self._network, labels=self.labels[0])
-		)
 
-		# self._loss = tf.reduce_mean(
-		# 	tf.nn.softmax_cross_entropy_with_logits(logits=self._network, labels=self.labels)
-		# )
+		self._loss = tf.reduce_mean(
+			tf.nn.softmax_cross_entropy_with_logits(logits=self._network, labels=self.labels)
+		)
 		self._loss_summary = tf.summary.scalar("loss", self._loss)
 		self._accuracy = tf.reduce_mean(
 			tf.cast(
 				tf.equal(tf.argmax(tf.nn.softmax(self._network), 1), tf.argmax(tf.nn.softmax(self.labels), 1)), tf.float32
-			)
-		)
-		self._accuracy = tf.reduce_mean(
-			tf.cast(
-				tf.reduce_sum(tf.floor(self._network)), tf.float32
 			)
 		)
 		self._accuracy_summary = tf.summary.scalar("accuracy", self._accuracy)
@@ -65,45 +57,45 @@ class STmodel(object):
 	def resetdata(self, dataset_name, testrate=0.05):
 		print("Set to data {}".format(dataset_name))
 		self._dataset = loaddata(dataset_name, testrate=testrate)
-	#
-	# def network(self, img1, img2, img3, img4, reuse=False):
-	# 	with tf.variable_scope('network') as scope:
-	# 		if reuse:
-	# 			scope.reuse_variables()
-	# 		tempcon1 = tf.concat([img1, img2], axis=1)
-	# 		tempcon2 = tf.concat([img3, img4], axis=1)
-	# 		image = tf.concat([tempcon1, tempcon2], axis=2)
-	# 		basechannel = 32
-	# 		h0_0, w0_0 = conv2d(image, basechannel, name='d_conv0_0', activation='lrelu', withbatch=False, withweight=True)
-	# 		h0_0 = tf.concat([h0_0, image], axis=3)
-	# 		# tf.summary.image('w0_0', tf.reshape(w0_0, [8, 8, 1, 1]))
-	# 		h0_1 = conv2d(h0_0, basechannel*2, name='d_conv0_1', activation='lrelu', withbatch=True)
-	# 		h0 = tf.concat([h0_1, h0_0], axis=3)
-	# 		h0_pool = maxpool(h0, k=3, s=2, name='d_conv0_maxpool')
-	#
-	# 		h1_0 = conv2d(h0_pool, basechannel*4, name='d_conv1_0', activation='lrelu', withbatch=True)
-	# 		h1_0 = tf.concat([h1_0, h0_pool], axis=3)
-	# 		h1_1 = conv2d(h1_0, basechannel*8, name='d_conv1_1', activation='lrelu', withbatch=True)
-	# 		h1 = tf.concat([h1_1, h1_0], axis=3)
-	# 		h1_pool = maxpool(h1, k=3, s=2, name='d_conv1_maxpool')
-	#
-	# 		h2_0 = conv2d(h1_pool, basechannel*16, name='d_conv2_0', activation='lrelu', withbatch=True)
-	# 		# h2_0 = tf.concat([h2_0, h1_pool], axis=3)
-	# 		h2_1 = conv2d(h2_0, basechannel*16, name='d_conv2_1', activation='lrelu', withbatch=True)
-	# 		h2 = tf.concat([h2_1, h2_0], axis=3)
-	# 		h2_pool = maxpool(h2, k=3, s=2, name='d_conv2_maxpool')
-	#
-	# 		# h3_0 = conv2d(h2_pool, basechannel*64, name='d_conv3_0', activation='lrelu', withbatch=False)
-	# 		# h3_0 = tf.concat([h3_0, h2_pool], axis=3)
-	# 		# h3_1 = conv2d(h3_0, basechannel*64, name='d_conv3_1', activation='lrelu', withbatch=False)
-	# 		# h3 = tf.concat([h3_1, h3_0], axis=3)
-	# 		# h3_pool = maxpool(h3, k=3, s=2, name='d_conv3_maxpool')
-	#
-	# 		h4 = fc(h2_pool, 1024, activation='lrelu', name='d_fc1')
-	# 		h4_drop = tf.nn.dropout(h4, keep_prob=0.5)
-	# 		h5 = fc(h4_drop, 4, activation='linear', name='d_fc2')
-	# 		h5_drop = tf.nn.dropout(h5, keep_prob=0.5)
-	# 		return h5_drop
+
+	def network(self, img1, img2, img3, img4, reuse=False):
+		with tf.variable_scope('network') as scope:
+			if reuse:
+				scope.reuse_variables()
+			tempcon1 = tf.concat([img1, img2], axis=1)
+			tempcon2 = tf.concat([img3, img4], axis=1)
+			image = tf.concat([tempcon1, tempcon2], axis=2)
+			basechannel = 32
+			h0_0, w0_0 = conv2d(image, basechannel, name='d_conv0_0', activation='lrelu', withbatch=False, withweight=True)
+			h0_0 = tf.concat([h0_0, image], axis=3)
+			# tf.summary.image('w0_0', tf.reshape(w0_0, [8, 8, 1, 1]))
+			h0_1 = conv2d(h0_0, basechannel*2, name='d_conv0_1', activation='lrelu', withbatch=True)
+			h0 = tf.concat([h0_1, h0_0], axis=3)
+			h0_pool = maxpool(h0, k=3, s=2, name='d_conv0_maxpool')
+
+			h1_0 = conv2d(h0_pool, basechannel*4, name='d_conv1_0', activation='lrelu', withbatch=True)
+			h1_0 = tf.concat([h1_0, h0_pool], axis=3)
+			h1_1 = conv2d(h1_0, basechannel*8, name='d_conv1_1', activation='lrelu', withbatch=True)
+			h1 = tf.concat([h1_1, h1_0], axis=3)
+			h1_pool = maxpool(h1, k=3, s=2, name='d_conv1_maxpool')
+
+			h2_0 = conv2d(h1_pool, basechannel*16, name='d_conv2_0', activation='lrelu', withbatch=True)
+			# h2_0 = tf.concat([h2_0, h1_pool], axis=3)
+			h2_1 = conv2d(h2_0, basechannel*16, name='d_conv2_1', activation='lrelu', withbatch=True)
+			h2 = tf.concat([h2_1, h2_0], axis=3)
+			h2_pool = maxpool(h2, k=3, s=2, name='d_conv2_maxpool')
+
+			# h3_0 = conv2d(h2_pool, basechannel*64, name='d_conv3_0', activation='lrelu', withbatch=False)
+			# h3_0 = tf.concat([h3_0, h2_pool], axis=3)
+			# h3_1 = conv2d(h3_0, basechannel*64, name='d_conv3_1', activation='lrelu', withbatch=False)
+			# h3 = tf.concat([h3_1, h3_0], axis=3)
+			# h3_pool = maxpool(h3, k=3, s=2, name='d_conv3_maxpool')
+
+			h4 = fc(h2_pool, 1024, activation='lrelu', name='d_fc1')
+			h4_drop = tf.nn.dropout(h4, keep_prob=0.5)
+			h5 = fc(h4_drop, 4, activation='linear', name='d_fc2')
+			h5_drop = tf.nn.dropout(h5, keep_prob=0.5)
+			return h5_drop
 
 	# def network(self, img1, img2, img3, img4, reuse=False):
 	# 	with tf.variable_scope('network') as scope:
@@ -132,48 +124,48 @@ class STmodel(object):
 	# 		h6 = fc(h3_pool, 4, activation='linear', name='d_fc')
 	# 		return h6
 
-	def network(self, img1, img2, img3, img4, targetnum, reuse=False):
-		def double(img1, img2):
-			image = tf.concat([img1, img2], axis=3)
-			basechannel = 32
-			h0 = conv2d(image, basechannel, name='s_conv0', activation='lrelu', withbatch=True)
-			h0_pool = maxpool(h0, k=5, s=2, name='s_conv0_maxpool')
-
-			h1 = conv2d(h0_pool, basechannel*2, name='s_conv1', activation='lrelu', withbatch=True)
-			h1_pool = maxpool(h1, k=5, s=2, name='s_conv1_maxpool')
-
-			h2 = conv2d(h1_pool, basechannel*4, name='s_conv2', activation='lrelu', withbatch=True)
-			h2_pool = maxpool(h2, k=5, s=2, name='s_conv2_maxpool')
-
-			h3 = fc(h2_pool, basechannel, name='s_fc')
-			return h3
-
-		def single(img1):
-			basechannel = 32
-			h0 = conv2d(img1, basechannel, name='s_conv0', activation='lrelu', withbatch=True)
-			h0_pool = maxpool(h0, k=5, s=2, name='s_conv0_maxpool')
-
-			h1 = conv2d(h0_pool, basechannel * 2, name='s_conv1', activation='lrelu', withbatch=True)
-			h1_pool = maxpool(h1, k=5, s=2, name='s_conv1_maxpool')
-
-			h2 = conv2d(h1_pool, basechannel * 4, name='s_conv2', activation='lrelu', withbatch=True)
-			h2_pool = maxpool(h2, k=5, s=2, name='s_conv2_maxpool')
-
-			h3 = fc(h2_pool, basechannel, name='s_fc')
-			return h3
-
-		with tf.variable_scope('network') as scope:
-			if reuse:
-				scope.reuse_variables()
-			temp = [img1, img2, img3, img4]
-			targetimg = temp.pop(targetnum)
-			a = single(targetimg)
-			for _ in range(3):
-				a = np.concatenate([a, double(targetimg, temp.pop())], axis=-1)
-			h4 = fc(a, 1024, name='fc1')
-			h5 = fc(h4, 1, name='fc2', activation='linear')
-
-			return h5
+	# def network(self, img1, img2, img3, img4, targetnum, reuse=False):
+	# 	def double(img1, img2):
+	# 		image = tf.concat([img1, img2], axis=3)
+	# 		basechannel = 32
+	# 		h0 = conv2d(image, basechannel, name='s_conv0', activation='lrelu', withbatch=True)
+	# 		h0_pool = maxpool(h0, k=5, s=2, name='s_conv0_maxpool')
+	#
+	# 		h1 = conv2d(h0_pool, basechannel*2, name='s_conv1', activation='lrelu', withbatch=True)
+	# 		h1_pool = maxpool(h1, k=5, s=2, name='s_conv1_maxpool')
+	#
+	# 		h2 = conv2d(h1_pool, basechannel*4, name='s_conv2', activation='lrelu', withbatch=True)
+	# 		h2_pool = maxpool(h2, k=5, s=2, name='s_conv2_maxpool')
+	#
+	# 		h3 = fc(h2_pool, basechannel, name='s_fc')
+	# 		return h3
+	#
+	# 	def single(img1):
+	# 		basechannel = 32
+	# 		h0 = conv2d(img1, basechannel, name='s_conv0', activation='lrelu', withbatch=True)
+	# 		h0_pool = maxpool(h0, k=5, s=2, name='s_conv0_maxpool')
+	#
+	# 		h1 = conv2d(h0_pool, basechannel * 2, name='s_conv1', activation='lrelu', withbatch=True)
+	# 		h1_pool = maxpool(h1, k=5, s=2, name='s_conv1_maxpool')
+	#
+	# 		h2 = conv2d(h1_pool, basechannel * 4, name='s_conv2', activation='lrelu', withbatch=True)
+	# 		h2_pool = maxpool(h2, k=5, s=2, name='s_conv2_maxpool')
+	#
+	# 		h3 = fc(h2_pool, basechannel, name='s_fc')
+	# 		return h3
+	#
+	# 	with tf.variable_scope('network') as scope:
+	# 		if reuse:
+	# 			scope.reuse_variables()
+	# 		temp = [img1, img2, img3, img4]
+	# 		targetimg = temp.pop(targetnum)
+	# 		a = single(targetimg)
+	# 		for _ in range(3):
+	# 			a = np.concatenate([a, double(targetimg, temp.pop())], axis=-1)
+	# 		h4 = fc(a, 1024, name='fc1')
+	# 		h5 = fc(h4, 1, name='fc2', activation='linear')
+	#
+	# 		return h5
 
 	def train(self, epoch_num=450, lr=1e-5, beta1=0.5):
 		optim = tf.train.AdamOptimizer(lr, beta1=beta1).minimize(self._loss)
