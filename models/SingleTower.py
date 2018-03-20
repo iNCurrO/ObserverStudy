@@ -19,7 +19,7 @@ class STmodel(object):
 		self._checkpoint_dir = checkpoint_dir
 		self._sample_dir = sample_dir
 		self._c_dim = 1
-		self._dataset = loaddata(dataset_name, testrate=0.05)
+		self._dataset = loaddata(dataset_name, valrate=0, testrate=0.05)
 		# self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
 		self.inputs1 = tf.placeholder(
 			tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -34,12 +34,14 @@ class STmodel(object):
 			tf.float32, [None, self._img_size, self._img_size, self._c_dim]
 		)
 		self.labels = tf.placeholder(
-			tf.float32, [None, 4]
+			tf.float32, [None]
 		)
-		self._network = self.network(self.inputs1, self.inputs2, self.inputs3, self.inputs4, tf.argmax(self.labels))
+		self._network = self.network(
+			self.inputs1, self.inputs2, self.inputs3, self.inputs4
+		)
 		t_vars = tf.trainable_variables()
 		self._loss = tf.reduce_mean(
-			tf.nn.sigmoid_cross_entropy_with_logits(logits=self._network, labels=self.labels[0])
+			tf.nn.softmax_cross_entropy_with_logits(logits=self._network, labels=tf.reshape(self.labels, [-1, 1]))
 		)
 
 		# self._loss = tf.reduce_mean(
@@ -51,11 +53,7 @@ class STmodel(object):
 		# 		tf.equal(tf.argmax(tf.nn.softmax(self._network), 1), tf.argmax(tf.nn.softmax(self.labels), 1)), tf.float32
 		# 	)
 		# )
-		self._accuracy = tf.reduce_mean(
-			tf.cast(
-				tf.reduce_sum(tf.floor(self._network)), tf.float32
-			)
-		)
+		self._accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.floor(tf.nn.softmax(self._network)), 1), tf.float32))
 		self._accuracy_summary = tf.summary.scalar("accuracy", self._accuracy)
 		self.train_writer = tf.summary.FileWriter(checkpoint_dir + '/log/train', sess.graph)
 		self.test_writer = tf.summary.FileWriter(checkpoint_dir+'/log/test')
@@ -132,21 +130,22 @@ class STmodel(object):
 	# 		h6 = fc(h3_pool, 4, activation='linear', name='d_fc')
 	# 		return h6
 
-	def network(self, img1, img2, img3, img4, targetnum, reuse=False):
-		def double(img1, img2):
-			image = tf.concat([img1, img2], axis=3)
-			basechannel = 32
-			h0 = conv2d(image, basechannel, name='s_conv0', activation='lrelu', withbatch=True)
-			h0_pool = maxpool(h0, k=5, s=2, name='s_conv0_maxpool')
+	def network(self, img1, img2, img3, img4, reuse=False):
+		def double(img1, img2, name='0'):
+			with tf.variable_scope(name):
+				image = tf.concat([img1, img2], axis=3)
+				basechannel = 32
+				h0 = conv2d(image, basechannel, name='d_conv0', activation='lrelu', withbatch=True)
+				h0_pool = maxpool(h0, k=5, s=2, name='d_conv0_maxpool')
 
-			h1 = conv2d(h0_pool, basechannel*2, name='s_conv1', activation='lrelu', withbatch=True)
-			h1_pool = maxpool(h1, k=5, s=2, name='s_conv1_maxpool')
+				h1 = conv2d(h0_pool, basechannel*2, name='d_conv1', activation='lrelu', withbatch=True)
+				h1_pool = maxpool(h1, k=5, s=2, name='d_conv1_maxpool')
 
-			h2 = conv2d(h1_pool, basechannel*4, name='s_conv2', activation='lrelu', withbatch=True)
-			h2_pool = maxpool(h2, k=5, s=2, name='s_conv2_maxpool')
+				h2 = conv2d(h1_pool, basechannel*4, name='d_conv2', activation='lrelu', withbatch=True)
+				h2_pool = maxpool(h2, k=5, s=2, name='d_conv2_maxpool')
 
-			h3 = fc(h2_pool, basechannel, name='s_fc')
-			return h3
+				h3 = fc(h2_pool, basechannel, name='d_fc')
+				return h3
 
 		def single(img1):
 			basechannel = 32
@@ -165,11 +164,14 @@ class STmodel(object):
 		with tf.variable_scope('network') as scope:
 			if reuse:
 				scope.reuse_variables()
-			temp = [img1, img2, img3, img4]
-			targetimg = temp.pop(targetnum)
-			a = single(targetimg)
-			for _ in range(3):
-				a = np.concatenate([a, double(targetimg, temp.pop())], axis=-1)
+			a = single(img1)
+			print(a.shape)
+			a = tf.concat([a, double(img1, img2, name='1')], axis=1)
+			a = tf.concat([a, double(img1, img3, name='2')], axis=1)
+			a = tf.concat([a, double(img1, img4, name='3')], axis=1)
+			a = tf.concat([a, double(img2, img3, name='4')], axis=1)
+			a = tf.concat([a, double(img2, img4, name='5')], axis=1)
+			a = tf.concat([a, double(img3, img4, name='6')], axis=1)
 			h4 = fc(a, 1024, name='fc1')
 			h5 = fc(h4, 1, name='fc2', activation='linear')
 
@@ -188,14 +190,14 @@ class STmodel(object):
 				counter += 1
 				img1, img2, img3, img4, batch_label = self._dataset.train.next_batch(self._batch_size, must_full=True)
 				self._sess.run(optim, feed_dict={
-					self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4, self.labels: batch_label
+					self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4, self.labels: batch_label[:, 0]
 				})
 				if np.mod(counter, 10) == 1:
 					loss, accuracy, summary = self._sess.run([
 						self._loss, self._accuracy, self.merged],
 						feed_dict={
 						self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-						self.labels: batch_label
+						self.labels: batch_label[:, 0]
 					})
 					# loss = self._loss.eval({
 					# 	self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
@@ -218,14 +220,14 @@ class STmodel(object):
 
 				if self._dataset.train.getposition == 0:
 					stopflag = False
-
-			valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(100)
-			loss, accuracy, summary = self._sess.run([
-				self._loss, self._accuracy, self.merged],
-				feed_dict={
-					self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
-					self.labels: vallabel
-				})
+			#
+			# valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(100)
+			# loss, accuracy, summary = self._sess.run([
+			# 	self._loss, self._accuracy, self.merged],
+			# 	feed_dict={
+			# 		self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
+			# 		self.labels: vallabel
+			# 	})
 			# loss = self._loss.eval({
 			#
 			# })
@@ -233,10 +235,10 @@ class STmodel(object):
 			# 	self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
 			# 	self.labels: vallabel
 			# })
-			print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f}".format(
-				epoch, time.time() - start_time, loss, accuracy*100
-			))
-			self.test_writer.add_summary(summary, counter)
+			# print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f}".format(
+			# 	epoch, time.time() - start_time, loss, accuracy*100
+			# ))
+			# self.test_writer.add_summary(summary, counter)
 			stopflag = True
 		stopflag = True
 		counter = 0
@@ -247,11 +249,11 @@ class STmodel(object):
 			img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(self._batch_size, must_full=True)
 			temploss = self._loss.eval({
 				self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-				self.labels: batch_label
+				self.labels: batch_label[:, 0]
 			})
 			tempaccuracy = self._accuracy.eval({
 				self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-				self.labels: batch_label
+				self.labels: batch_label[:, 0]
 			})
 			loss += temploss
 			accuracy += tempaccuracy

@@ -103,7 +103,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 			# binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel], dtype=np.int32), axis=0)
 			binarylabellist[1] = np.append(binarylabellist[1], np.asarray([[1, 0, 0, 0]], dtype=np.int32), axis=0)
 		else:
-			shuffle(a)
+			# shuffle(a)
 			datalist1[0] += [tempimg[a[0]]]
 			datalist2[0] += [tempimg[a[1]]]
 			datalist3[0] += [tempimg[a[2]]]
