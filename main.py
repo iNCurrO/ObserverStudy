@@ -16,25 +16,25 @@ def show_all_variables():
 
 def main(_):
 	with tf.Session() as sess:
-		ckdir = './cp2'
+		ckdir = './cp4'
 		srcnn = STmodel(sess, checkpoint_dir=ckdir,
-							sample_dir=None, dataset_name=['observer2mmtransramp', 'observer1mmtransramp'])
+							sample_dir=None, dataset_name=['observer1mmtranshann'])
 		show_all_variables()
 		srcnn.train()
-		srcnn.resetdata(dataset_name=['observer2mmtransramp'])
-		srcnn.loadandsampling()
-		srcnn.resetdata(dataset_name=['observer2mmtranshann'])
-		srcnn.loadandsampling()
+		# srcnn.resetdata(dataset_name=['observer2mmtransramp'])
+		# srcnn.loadandsampling()
+		# srcnn.resetdata(dataset_name=['observer2mmtranshann'])
+		# srcnn.loadandsampling()
 		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongi')
 		# show_all_variables()
 		# srcnn.loadandsampling()
 		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongihann')
 		# show_all_variables()
-		# srcnn.loadandsampling()
+		srcnn.loadandsampling()
 		srcnn.resetdata(dataset_name=['observer1mmtransramp'])
 		srcnn.loadandsampling()
-		srcnn.resetdata(dataset_name=['observer1mmtranshann'])
-		srcnn.loadandsampling()
+		# srcnn.resetdata(dataset_name=['observer1mmtranshann'])
+		# srcnn.loadandsampling()
 
 # def main(_):
 # 	with tf.Session() as sess:

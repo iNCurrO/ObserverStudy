@@ -65,7 +65,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 	datalist2 = [[], [], []]
 	datalist3 = [[], [], []]
 	datalist4 = [[], [], []]
-	binarylabellist = [np.array([]).reshape(0, numlabel) for _ in range(3)]
+	binarylabellist = [np.array([], dtype=np.int8).reshape(0, numlabel) for _ in range(3)]
 	templist1 = []
 	templist2 = []
 	templist3 = []
@@ -89,27 +89,29 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 		tempimg = [tempimg1, tempimg2, tempimg3, tempimg4]
 		templabel = label[:, i]
 		if i > numtrain+numval:
-			datalist1[2] += [tempimg[0]]
-			datalist2[2] += [tempimg[1]]
-			datalist3[2] += [tempimg[2]]
-			datalist4[2] += [tempimg[3]]
-			# binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel], dtype=np.int32), axis=0)
-			binarylabellist[2] = np.append(binarylabellist[2], np.asarray([[1, 0, 0, 0]], dtype=np.int32), axis=0)
+			shuffle(a)
+			templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
+			datalist1[2] += [tempimg[a[0]]]
+			datalist2[2] += [tempimg[a[1]]]
+			datalist3[2] += [tempimg[a[2]]]
+			datalist4[2] += [tempimg[a[3]]]
+			binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel[a]], dtype=np.int8), axis=0)
 		elif i > numtrain:
-			datalist1[1] += [tempimg[0]]
-			datalist2[1] += [tempimg[1]]
-			datalist3[1] += [tempimg[2]]
-			datalist4[1] += [tempimg[3]]
-			# binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel], dtype=np.int32), axis=0)
-			binarylabellist[1] = np.append(binarylabellist[1], np.asarray([[1, 0, 0, 0]], dtype=np.int32), axis=0)
+			shuffle(a)
+			templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
+			datalist1[1] += [tempimg[a[0]]]
+			datalist2[1] += [tempimg[a[1]]]
+			datalist3[1] += [tempimg[a[2]]]
+			datalist4[1] += [tempimg[a[3]]]
+			binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel[a]], dtype=np.int8), axis=0)
 		else:
 			shuffle(a)
+			templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
 			datalist1[0] += [tempimg[a[0]]]
 			datalist2[0] += [tempimg[a[1]]]
 			datalist3[0] += [tempimg[a[2]]]
 			datalist4[0] += [tempimg[a[3]]]
-			binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel[a]], dtype=np.int32), axis=0)
-			# binarylabellist[0] = np.append(binarylabellist[0], np.asarray([[1, 0, 0, 0]], dtype=np.int32), axis=0)
+			binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel[a]], dtype=np.int8), axis=0)
 
 	class DataSets(object):
 		pass
