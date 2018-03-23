@@ -18,7 +18,7 @@ def main(_):
 	with tf.Session() as sess:
 		ckdir = './cp4'
 		srcnn = STmodel(sess, checkpoint_dir=ckdir,
-							sample_dir=None, dataset_name=['observer1mmtranshann'])
+							sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
 		show_all_variables()
 		srcnn.train()
 		# srcnn.resetdata(dataset_name=['observer2mmtransramp'])
@@ -30,11 +30,11 @@ def main(_):
 		# srcnn.loadandsampling()
 		# srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongihann')
 		# show_all_variables()
-		srcnn.loadandsampling()
+		# srcnn.loadandsampling()
 		srcnn.resetdata(dataset_name=['observer1mmtransramp'])
 		srcnn.loadandsampling()
-		# srcnn.resetdata(dataset_name=['observer1mmtranshann'])
-		# srcnn.loadandsampling()
+		srcnn.resetdata(dataset_name=['observer1mmtranshann'])
+		srcnn.loadandsampling()
 
 # def main(_):
 # 	with tf.Session() as sess:
