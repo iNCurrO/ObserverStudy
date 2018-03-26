@@ -127,7 +127,7 @@ def deconv2d(
 				activation) if tag else act_func(conv, activation))(deconv, withbatch)
 
 
-def maxpool(input_, k, s, name='maxpool'):
+def maxpool(input_, k=3, s=2, name='maxpool'):
 	with tf.variable_scope(name):
 		return tf.nn.max_pool(input_, ksize=[1, k, k, 1], strides=[1, s, s, 1], padding='SAME')
 
@@ -138,7 +138,7 @@ def avgpool(input_, k, s, name='avgpool'):
 
 
 def fc(
-		input_, output_dim, name='fc', keepprob=0.5, withdropout=False, activation='relu', withbatch=False,
+		input_, output_dim, name='fc', keepprob=0.7, withdropout=False, activation='relu', withbatch=False,
 		issampling=False):
 	if len(input_.get_shape()) != 2:
 		input_ = makeflat(input_)
