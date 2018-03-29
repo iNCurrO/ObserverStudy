@@ -75,43 +75,45 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 		templist2 = templist2 + glob.glob(os.path.join(data_dir_[1+4*i], '*'))
 		templist3 = templist3 + glob.glob(os.path.join(data_dir_[2+4*i], '*'))
 		templist4 = templist4 + glob.glob(os.path.join(data_dir_[3+4*i], '*'))
-	datanum = len(templist1)
+	datanum = int(len(templist1) / len(dataname))
 	numval = int(np.floor(valrate * datanum))
 	numtest = int(np.floor(testrate * datanum))
 	numtrain = datanum - numval - numtest
 	a = [0, 1, 2, 3]
+	print("{}, {}, {}, {}".format(len(templist1), len(templist2), len(templist3), len(templist4)))
 	print("Dataset Num of train: {}, Num of Val : {}, Num of test : {}".format(numtrain, numval, numtest))
-	for i in range(datanum):
-		tempimg1 = readimage(templist1[i])
-		tempimg2 = readimage(templist2[i])
-		tempimg3 = readimage(templist3[i])
-		tempimg4 = readimage(templist4[i])
-		tempimg = [tempimg1, tempimg2, tempimg3, tempimg4]
-		templabel = label[:, i]
-		if i > numtrain+numval:
-			shuffle(a)
-			templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
-			datalist1[2] += [tempimg[a[0]]]
-			datalist2[2] += [tempimg[a[1]]]
-			datalist3[2] += [tempimg[a[2]]]
-			datalist4[2] += [tempimg[a[3]]]
-			binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel[a]], dtype=np.int8), axis=0)
-		elif i > numtrain:
-			shuffle(a)
-			templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
-			datalist1[1] += [tempimg[a[0]]]
-			datalist2[1] += [tempimg[a[1]]]
-			datalist3[1] += [tempimg[a[2]]]
-			datalist4[1] += [tempimg[a[3]]]
-			binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel[a]], dtype=np.int8), axis=0)
-		else:
-			shuffle(a)
-			templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
-			datalist1[0] += [tempimg[a[0]]]
-			datalist2[0] += [tempimg[a[1]]]
-			datalist3[0] += [tempimg[a[2]]]
-			datalist4[0] += [tempimg[a[3]]]
-			binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel[a]], dtype=np.int8), axis=0)
+	for j in range(len(dataname)):
+		for i in range(datanum):
+			tempimg1 = readimage(templist1[i + datanum*j])
+			tempimg2 = readimage(templist2[i + datanum*j])
+			tempimg3 = readimage(templist3[i + datanum*j])
+			tempimg4 = readimage(templist4[i + datanum*j])
+			tempimg = [tempimg1, tempimg2, tempimg3, tempimg4]
+			templabel = label[:, i + datanum*j]
+			if i > numtrain+numval:
+				shuffle(a)
+				templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
+				datalist1[2] += [tempimg[a[0]]]
+				datalist2[2] += [tempimg[a[1]]]
+				datalist3[2] += [tempimg[a[2]]]
+				datalist4[2] += [tempimg[a[3]]]
+				binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel[a]], dtype=np.int8), axis=0)
+			elif i > numtrain:
+				shuffle(a)
+				templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
+				datalist1[1] += [tempimg[a[0]]]
+				datalist2[1] += [tempimg[a[1]]]
+				datalist3[1] += [tempimg[a[2]]]
+				datalist4[1] += [tempimg[a[3]]]
+				binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel[a]], dtype=np.int8), axis=0)
+			else:
+				shuffle(a)
+				templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
+				datalist1[0] += [tempimg[a[0]]]
+				datalist2[0] += [tempimg[a[1]]]
+				datalist3[0] += [tempimg[a[2]]]
+				datalist4[0] += [tempimg[a[3]]]
+				binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel[a]], dtype=np.int8), axis=0)
 
 	class DataSets(object):
 		pass

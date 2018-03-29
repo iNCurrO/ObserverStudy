@@ -65,9 +65,10 @@ class STmodel(object):
 			tempcon1 = tf.concat([img1, img2], axis=1)
 			tempcon2 = tf.concat([img3, img4], axis=1)
 			image = tf.concat([tempcon1, tempcon2], axis=2)
-			basechannel = 10
-			h0_0= conv2d(image, basechannel, k=49, name='d_conv0_0', activation='lrelu', withbatch=False)
-			h5 = fc(h0_0, 4, activation='linear', name='d_fc2', withdropout=True)
+			basechannel = 32
+			h0_0= conv2d(image, basechannel, k=49, name='d_conv0_0', activation='linear', withbatch=True)
+			fc2 = fc(h0_0, 128, activation='linear', name='d_fc1', withdropout=True)
+			h5 = fc(fc2, 4, activation='linear', name='d_fc2', withdropout=True)
 			return h5
 
 	# def network(self, img1, img2, img3, img4, reuse=False):
@@ -132,7 +133,7 @@ class STmodel(object):
 	# 		h6 = fc(h5, 4, activation='linear', name='d_fc_3')
 	# 		return h6
 
-	def train(self, epoch_num=2000, lr=1e-4, beta1=0.5):
+	def train(self, epoch_num=20000, lr=1e-4, beta1=0.5):
 		optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
 		tf.global_variables_initializer().run()
 
