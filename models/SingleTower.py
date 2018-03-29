@@ -24,7 +24,7 @@ class STmodel(object):
 			self._sample_dataset = loadsampledata(sample_dir, labeldice=label_dice)
 		self._c_dim = 1
 		if len(dataset_name) != 0:
-			self._dataset = loaddata(dataset_name, valrate=0.45, testrate=0.05)
+			self._dataset = loaddata(dataset_name, valrate=0.1, testrate=0.05)
 			# self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
 		self.inputs = tf.placeholder(
 			tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -61,22 +61,18 @@ class STmodel(object):
 				scope.reuse_variables()
 			basechannel = 128
 			h0_0 = conv2d(image, basechannel, name='conv0_0', activation='lrelu')
-			h0_1 = conv2d(h0_0, basechannel, name='conv0_1', activation='lrelu', withbatch=False)
+			h0_1 = conv2d(h0_0, basechannel, name='conv0_1', activation='lrelu')
 			h0 = maxpool(h0_1, name='conv0_maxpool')
 
-			h1_0 = conv2d(h0, basechannel*2, name='conv1_0', activation='lrelu', withbatch=False)
-			h1_1 = conv2d(h1_0, basechannel*2, name='conv1_1', activation='lrelu', withbatch=False)
+			h1_0 = conv2d(h0, basechannel*2, name='conv1_0', activation='lrelu')
+			h1_1 = conv2d(h1_0, basechannel*2, name='conv1_1', activation='lrelu')
 			h1 = maxpool(h1_1, name='conv1_maxpool')
 
-			h2_0 = conv2d(h1, basechannel*4, name='conv2_0', activation='lrelu', withbatch=False)
-			h2_1 = conv2d(h2_0, basechannel*4, name='conv2_1', activation='lrelu', withbatch=False)
+			h2_0 = conv2d(h1, basechannel*4, name='conv2_0', activation='lrelu')
+			h2_1 = conv2d(h2_0, basechannel*4, name='conv2_1', activation='lrelu')
 			h2 = maxpool(h2_1, name='conv2_maxpool')
 
-			h3_0 = conv2d(h2, basechannel*8, name='conv3_0', activation='lrelu', withbatch=False)
-			h3_1 = conv2d(h3_0, basechannel*8, name='conv3_1', activation='lrelu', withbatch=False)
-			h3 = maxpool(h3_1, name='conv3_maxpool')
-
-			h4 = fc(h3, 1024, activation='lrelu', name='fc1', withdropout=True)
+			h4 = fc(h2, 1024, activation='lrelu', name='fc1', withdropout=True)
 			h5 = fc(h4, 1024, activation='lrelu', name='fc2', withdropout=True)
 			h6 = fc(h5, 2, activation='linear', name='fc3')
 

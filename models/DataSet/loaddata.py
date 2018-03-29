@@ -66,52 +66,43 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 	# binarylabellist = [np.array([], dtype=np.int8).reshape(0, numlabel) for _ in range(3)]
 	templist1 = []
 	templist2 = []
-	for i in range(len(dataname)):
-		templist1 = templist1 + glob.glob(os.path.join(data_dir_[0+4*i], '*'))
+	for i in range(len(dataname)): # 4
+		templist1 = templist1 + glob.glob(os.path.join(data_dir_[0+4*i], '*'))  # 80000
 		templist2 = templist2 + glob.glob(os.path.join(data_dir_[1+4*i], '*'))
-
 	print(data_dir_)
-	datanum = len(templist1)
+	datanum = int(len(templist1) / len(dataname))  # 20000
 	numval = int(np.floor(valrate * datanum))
 	numtest = int(np.floor(testrate * datanum))
 	numtrain = datanum - numval - numtest
 	print("Dataset Num of train: {}, Num of Val : {}, Num of test : {}".format(numtrain, numval, numtest))
-	for i in range(datanum):
-		tempimg1 = readimage(templist1[i])
-		tempimg2 = readimage(templist2[i])
-		tempimg = [tempimg1, tempimg2]
-		if i >= numtrain+numval:
-			# templabel1 = np.asarray([1, 0], dtype=np.int8)
-			# templabel2 = np.asarray([0, 1], dtype=np.int8)
-			datalist1[2] += [tempimg[0]]
-			datalist2[2] += [tempimg[1]]
-			# binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel1, templabel2], dtype=np.int8), axis=0)
-		elif i >= numtrain:
-			# templabel1 = np.asarray([1, 0], dtype=np.int8)
-			# templabel2 = np.asarray([0, 1], dtype=np.int8)
-			datalist1[1] += [tempimg[0]]
-			datalist2[1] += [tempimg[1]]
-			# binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel1, templabel2], dtype=np.int8), axis=0)
-		else:
-			# templabel1 = np.asarray([1, 0], dtype=np.int8)
-			# templabel2 = np.asarray([0, 1], dtype=np.int8)
-			datalist1[0] += [tempimg[0]]
-			datalist2[0] += [tempimg[1]]
-			# binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel1, templabel2], dtype=np.int8), axis=0)
+	for j in range(len(dataname)):  # 4
+		for i in range(datanum):  # 20000
+			tempimg1 = readimage(templist1[i+datanum*j])
+			tempimg2 = readimage(templist2[i+datanum*j])
+			tempimg = [tempimg1, tempimg2]
+			if i >= numtrain+numval:
+				# templabel1 = np.asarray([1, 0], dtype=np.int8)
+				# templabel2 = np.asarray([0, 1], dtype=np.int8)
+				datalist1[2] += [tempimg[0]]
+				datalist2[2] += [tempimg[1]]
+				# binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel1, templabel2], dtype=np.int8), axis=0)
+			elif i >= numtrain:
+				# templabel1 = np.asarray([1, 0], dtype=np.int8)
+				# templabel2 = np.asarray([0, 1], dtype=np.int8)
+				datalist1[1] += [tempimg[0]]
+				datalist2[1] += [tempimg[1]]
+				# binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel1, templabel2], dtype=np.int8), axis=0)
+			else:
+				# templabel1 = np.asarray([1, 0], dtype=np.int8)
+				# templabel2 = np.asarray([0, 1], dtype=np.int8)
+				datalist1[0] += [tempimg[0]]
+				datalist2[0] += [tempimg[1]]
+				# binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel1, templabel2], dtype=np.int8), axis=0)
 
 	binarylabellist = []
-	binarylabellist.append(np.concatenate((
-		np.array([[1, 0] for _ in range(numtrain)]),
-		np.array([[0, 1] for _ in range(numtrain)])
-	), axis=0))
-	binarylabellist.append(np.concatenate((
-		np.array([[1, 0] for _ in range(numval)]),
-		np.array([[0, 1] for _ in range(numval)])
-	), axis=0))
-	binarylabellist.append(np.concatenate((
-		np.array([[1, 0] for _ in range(numtest)]),
-		np.array([[0, 1] for _ in range(numtest)])
-	), axis=0))
+	binarylabellist.append(np.array([[1, 0] for _ in range(numtrain)]*len(dataname) + [[0, 1] for _ in range(numtrain)]*len(dataname)))
+	binarylabellist.append(np.array([[1, 0] for _ in range(numval)]*len(dataname) + [[0, 1] for _ in range(numval)]*len(dataname)))
+	binarylabellist.append(np.array([[1, 0] for _ in range(numtest)]*len(dataname) + [[0, 1] for _ in range(numtest)]*len(dataname)))
 
 	class DataSets(object):
 		pass
@@ -128,7 +119,8 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 		)
 
 	if numtest != 0:
-		datasets.test = DataSet(np.concatenate((np.asarray(datalist1[2]), np.asarray(datalist2[2])), axis=0),
+		datasets.test = DataSet(
+				np.concatenate((np.asarray(datalist1[2]), np.asarray(datalist2[2])), axis=0),
 				binarylabellist[2]
 		)
 

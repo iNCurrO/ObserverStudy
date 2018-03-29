@@ -13,13 +13,13 @@ def show_all_variables():
 	slim.model_analyzer.analyze_vars(model_vars, print_info=True)
 #
 
-#
+
 def main(_):
 	with tf.Session() as sess:
-		ckdir = './cp7'
+		ckdir = './cp4'
 		srcnn = STmodel(sess, checkpoint_dir=ckdir,
 				dataset_name=['observer1mmtranshann', 'observer1mmtransramp',
-								  'observer2mmtransramp', 'observer2mmtranshann'])
+								  'observer2mmtranshann'])
 		show_all_variables()
 		srcnn.train()
 # 		srcnn.resetdata(dataset_name=['observer2mmtransramp'])
@@ -39,41 +39,38 @@ def main(_):
 # 		srcnn.resetdata(dataset_name=['observer1mmtranshann'])
 # 		srcnn.loadandsampling()
 
-# def main(_):
-# 	with tf.Session() as sess:
-# 		ckdir = './cp6'
-# 		cnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=['observer1mmtransramp'], label_dice=1)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=2)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=3)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=4)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=1)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=2)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=3)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=4)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=1)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=2)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=3)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=4)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=1)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=2)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=3)
-# 		cnn.loadandlabelsampling()
-# 		cnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=4)
-# 		cnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=1)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=2)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=3)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=4)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=1)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=2)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=3)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=4)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=1)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=2)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=3)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=4)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=1)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=2)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=3)
+		srcnn.loadandlabelsampling()
+		srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=4)
+		srcnn.loadandlabelsampling()
 #
 # def main(_):
 # 	with tf.Session() as sess:
