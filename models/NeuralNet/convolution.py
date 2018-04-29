@@ -67,16 +67,53 @@ def conv2dwithrandom(input_,  k=3, s=1, k2=0, name='con2drandom', activation='re
 		return salt
 
 
-def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=True, withweight=False):
+def makefilter(k, m):
+	pixel_size = 0.2028
+	diameter = 1
+	sigma = 8
+	pixel = 65
+	filt = np.zeros([pixel, pixel, k, m])
+	for m_ in range(m):
+		for i in range(pixel):
+			for j in range(pixel):
+				## this is gabor filter
+				for k_ in range(k):
+					theta = np.mod(m_, 4) * np.pi / 4
+					xprime = (i-np.floor(pixel/2)) * np.cos(theta) + (j-np.floor(pixel/2)) * np.sin(theta)
+					yprime = (np.floor(pixel/2)-i) * np.sin(theta) + (j-np.floor(pixel/2)) * np.cos(theta)
+					temp = np.exp(-(np.square(xprime) + np.square(yprime))/2/5/5)*np.cos(xprime/2)
+					if m_ // int(k) == k_:
+						filt[i, j, k_, m_] = temp
+					# else:
+					# 	filt[i, j, k_, m_] = -temp
+
+				## this is gaussian filter
+				# for k in range(m):
+				# 	if k == m_:
+				# 		filt[i, j, k, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+				# 	else:
+				# 		filt[i, j, k, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+				# This is just circle filter
+				# if np.sqrt(np.square(i-n-p.floor(pixel/2))+np.square(j-np.floor(pixel/2))) < diameter/pixel_size/2:
+				# 	for k in range(m):
+				# 		if k == m_:
+				# 			filt[i, j, m_, m_] = 0.5
+				# 		else:
+				# 			filt[i, j, k, m_] = -0.5
+	return tf.constant_initializer(filt)
+
+
+def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=True, withweight=False, padding='SAME'):
 	assert activation in ACT_LIST, 'Unkwon activation function'
 	if k2 is 0:
 		k2 = k
 	with tf.variable_scope(name):
 		w = tf.get_variable(
-			'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=tf.truncated_normal_initializer(stddev=0.02)
+				'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=makefilter(input_.get_shape()[-1], output_dim)
+			# 'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=tf.truncated_normal_initializer(stddev=0.02)
 		)
 		b = tf.get_variable('b', [output_dim], initializer=tf.constant_initializer(0.0))
-		conv = tf.nn.conv2d(input_, w, strides=[1, s, s, 1], padding='SAME') + b
+		conv = tf.nn.conv2d(input_, w, strides=[1, s, s, 1], padding=padding) + b
 
 		if withbatch:
 			if withweight:

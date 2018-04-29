@@ -19,7 +19,7 @@ class STmodel(object):
 		self._checkpoint_dir = checkpoint_dir
 		self._sample_dir = sample_dir
 		self._c_dim = 1
-		self._dataset = loaddata(dataset_name, valrate=0.1, testrate=0.05)
+		self._dataset = loaddata(dataset_name, valrate=0.1, testrate=0.15)
 		# self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
 		self.inputs1 = tf.placeholder(
 			tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -62,13 +62,25 @@ class STmodel(object):
 		with tf.variable_scope('network') as scope:
 			if reuse:
 				scope.reuse_variables()
-			tempcon1 = tf.concat([img1, img2], axis=1)
-			tempcon2 = tf.concat([img3, img4], axis=1)
-			image = tf.concat([tempcon1, tempcon2], axis=2)
-			basechannel = 32
-			h0_0= conv2d(image, basechannel, k=49, name='d_conv0_0', activation='linear', withbatch=True)
-			fc2 = fc(h0_0, 128, activation='linear', name='d_fc1', withdropout=True)
-			h5 = fc(fc2, 4, activation='linear', name='d_fc2', withdropout=True)
+			# tempcon1 = tf.concat([img1, img2], axis=1)
+			# tempcon2 = tf.concat([img3, img4], axis=1)
+			# image = tf.concat([tempcon1, tempcon2], axis=2)
+			image = tf.concat([img1, img2, img3, img4], axis=3)
+			basechannel = 16
+			h0_0, w = conv2d(image, basechannel, k=65, name='d_conv0_0', activation='linear', withbatch=False, withweight=True, padding='VALID')
+			x_min = tf.reduce_min(w)
+			x_max = tf.reduce_max(w)
+			w_0to1 = (w-x_min) / (x_max-x_min)
+			w_0to255 = tf.image.convert_image_dtype(w_0to1, dtype=tf.uint8)
+			w_trans = tf.transpose(w_0to255, [3, 0, 1, 2])
+			w1, w2, w3, w4 = tf.split(w_trans, 4, axis=3)
+			tf.summary.image('filters1', w1, max_outputs=basechannel)
+			tf.summary.image('filters2', w2, max_outputs=basechannel)
+			tf.summary.image('filters3', w3, max_outputs=basechannel)
+			tf.summary.image('filters4', w4, max_outputs=basechannel)
+
+			# fc2 = fc(h0_0, 128, activation='linear', name='d_fc1', withdropout=True)
+			h5 = fc(h0_0, 4, activation='linear', name='d_fc2', withdropout=False)
 			return h5
 
 	# def network(self, img1, img2, img3, img4, reuse=False):
@@ -133,14 +145,16 @@ class STmodel(object):
 	# 		h6 = fc(h5, 4, activation='linear', name='d_fc_3')
 	# 		return h6
 
-	def train(self, epoch_num=20000, lr=1e-4, beta1=0.5):
+	def train(self, epoch_num=50000, lr=1e-4, beta1=0.5):
 		optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
 		tf.global_variables_initializer().run()
 
 		counter = 1
 		stopflag = True
 		start_time = time.time()
-
+		# if continued == True:
+		# ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+		# self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
 		for epoch in range(epoch_num):
 			while stopflag is True:
 				counter += 1
@@ -150,7 +164,7 @@ class STmodel(object):
 				})
 				if np.mod(counter, 10) == 1:
 					loss, accuracy, summary = self._sess.run([self._loss, self._accuracy, self.merged],
-						feed_dict={
+							feed_dict={
 						self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
 						self.labels: batch_label
 					})
@@ -160,7 +174,7 @@ class STmodel(object):
 					))
 					self.train_writer.add_summary(summary, counter)
 
-				if np.mod(counter, 1000) == 2:
+				if np.mod(counter, 5000) == 2:
 					if not os.path.exists(self._checkpoint_dir):
 						os.makedirs(self._checkpoint_dir)
 					self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"), global_step=counter)
@@ -175,17 +189,8 @@ class STmodel(object):
 					self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
 					self.labels: vallabel
 				})
-			# loss = self._loss.eval({
-			#
-			# })
-			# accuracy = self._accuracy.eval({
-			# 	self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
-			# 	self.labels: vallabel
-			# })
 			print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
-					(
-					epoch, time.time() - start_time, loss, accuracy*100
-					)
+					(epoch, time.time() - start_time, loss, accuracy*100)
 			)
 			self.test_writer.add_summary(summary, counter)
 			stopflag = True
