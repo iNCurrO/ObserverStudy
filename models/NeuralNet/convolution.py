@@ -109,8 +109,8 @@ def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', 
 		k2 = k
 	with tf.variable_scope(name):
 		w = tf.get_variable(
-				'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=makefilter(input_.get_shape()[-1], output_dim)
-			# 'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=tf.truncated_normal_initializer(stddev=0.02)
+				# 'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=makefilter(input_.get_shape()[-1], output_dim)
+			'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=tf.truncated_normal_initializer(stddev=0.02)
 		)
 		b = tf.get_variable('b', [output_dim], initializer=tf.constant_initializer(0.0))
 		conv = tf.nn.conv2d(input_, w, strides=[1, s, s, 1], padding=padding) + b

@@ -8,23 +8,23 @@ from scipy import io
 from random import shuffle
 
 
-def readimage(fname):
-	# queue = tf.train.string_input_producer(list(fname), shuffle=False, seed=None)
-	# reader = tf.WholeFileReader()
-	# filename, data = reader.read(queue)
-	# image = tf.image.decode_png(data, channels=3)
-	# image.set_shape([64, 64, 3])
-	# image = tf.image.rgb_to_grayscale(image)
-	# return tf.to_float(image)
-	tempimg = Image.open(fname).convert('L')
-	resultimg = np.asarray(tempimg, dtype=float)
-	if tempimg.mode == 'L':
-		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 1])
-	else:
-		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 3])
-	tempimg.close()
-	# print(np.min((resultimg/127.5 - 1.).astype(np.float32)))
-	return (resultimg/255).astype(np.float32)
+# def readimage(fname):
+# 	# queue = tf.train.string_input_producer(list(fname), shuffle=False, seed=None)
+# 	# reader = tf.WholeFileReader()
+# 	# filename, data = reader.read(queue)
+# 	# image = tf.image.decode_png(data, channels=3)
+# 	# image.set_shape([64, 64, 3])
+# 	# image = tf.image.rgb_to_grayscale(image)
+# 	# return tf.to_float(image)
+# 	tempimg = Image.open(fname).convert('L')
+# 	resultimg = np.asarray(tempimg, dtype=float)
+# 	if tempimg.mode == 'L':
+# 		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 1])
+# 	else:
+# 		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 3])
+# 	tempimg.close()
+# 	# print(np.min((resultimg/127.5 - 1.).astype(np.float32)))
+# 	return (resultimg/255).astype(np.float32)
 
 
 def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
@@ -58,7 +58,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 		else:
 			data_dir_ = glob.glob(os.path.join(dir_, dataset, "*"))
 			assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
-		label = np.concatenate([label, mat_file['label']], axis=1)
+		# label = np.concatenate([label, mat_file['label']], axis=1)
 		data_dir_ = data_dir_ + data_dir_temp
 	numlabel = 4
 	datalist1 = [[], [], []]
@@ -80,16 +80,17 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 	numtest = int(np.floor(testrate * datanum))
 	numtrain = datanum - numval - numtest
 	a = [0, 1, 2, 3]
-	print("{}, {}, {}, {}".format(len(templist1), len(templist2), len(templist3), len(templist4)))
+	# print("{}, {}, {}, {}".format(len(templist1), len(templist2), len(templist3), len(templist4)))
 	print("Dataset Num of train: {}, Num of Val : {}, Num of test : {}".format(numtrain, numval, numtest))
 	for j in range(len(dataname)):
+		print("Load Data from {}".format(dataname[j]))
 		for i in range(datanum):
-			tempimg1 = readimage(templist1[i + datanum*j])
-			tempimg2 = readimage(templist2[i + datanum*j])
-			tempimg3 = readimage(templist3[i + datanum*j])
-			tempimg4 = readimage(templist4[i + datanum*j])
-			tempimg = [tempimg1, tempimg2, tempimg3, tempimg4]
-			templabel = label[:, i + datanum*j]
+			# tempimg1 = readimage(templist1[i + datanum*j])
+			# tempimg2 = readimage(templist2[i + datanum*j])
+			# tempimg3 = readimage(templist3[i + datanum*j])
+			# tempimg4 = readimage(templist4[i + datanum*j])
+			tempimg = [templist1[i + datanum*j], templist2[i + datanum*j], templist3[i + datanum*j], templist4[i + datanum*j]]
+			# templabel = label[:, i + datanum*j]
 			if i > numtrain+numval:
 				shuffle(a)
 				templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)

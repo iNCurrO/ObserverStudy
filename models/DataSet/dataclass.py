@@ -1,13 +1,19 @@
 import numpy
+import scipy.misc
+
+
+def imread(pathes):
+	return numpy.array([scipy.misc.imread(path) for path in pathes]).astype(numpy.float32)
 
 
 class DataSet(object):
 	def __init__(self, images1, images2, images3, images4, label):
-		assert len(images1.shape) < 5,\
-			'From Loading data... Image Shape is strange ({}). please check. '.format(images1.shape)
+		# assert len(images1.shape) < 5,\
+		# 	'From Loading data... Image Shape is strange ({}). please check. '.format(images1.shape)
 		assert images1.shape[0] == label.shape[0], "From Loading data... # of image and label differ please check" \
 																 "image {} : label {} ,".format(images1.shape[0], label.shape[0])
-		self._num_examples, self._image_width, self._image_height = images1.shape[0], images1.shape[1], images1.shape[2]
+		# self._num_examples, self._image_width, self._image_height = images1.shape[0], images1.shape[1], images1.shape[2]
+		self._num_examples = images1.shape[0]
 		self._index_in_epoch = 0
 		perm = numpy.arange(self._num_examples)
 		numpy.random.shuffle(perm)
@@ -44,16 +50,22 @@ class DataSet(object):
 			numpy.random.shuffle(perm)
 			self._images1, self._images2, self._images3, self._images4, self._labels = \
 				self._images1[perm], self._images2[perm], self._images3[perm], self._images4[perm], self._labels[perm]
+			# tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
+			# 	self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end],\
+			# 	self._labels[start:end]
 			tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-				self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end],\
-				self._labels[start:end]
+				imread(self._images1[start:end]), imread(self._images2[start:end]), imread(self._images3[start:end]), \
+				imread(self._images4[start:end]), self._labels
 			return tempimages1, tempimages2, tempimages3, tempimages4, templabels
 		elif self._index_in_epoch >= self._num_examples:
 			end = self._num_examples
 			self._index_in_epoch = 0
+			# tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
+			# 	self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end], \
+			# 	self._labels[start:end]
 			tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-				self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end], \
-				self._labels[start:end]
+				imread(self._images1[start:end]), imread(self._images2[start:end]), imread(self._images3[start:end]), \
+				imread(self._images4[start:end]), self._labels
 			perm = numpy.arange(self._num_examples)
 			numpy.random.shuffle(perm)
 			self._images1, self._images2, self._images3, self._images4, self._labels = \
@@ -61,8 +73,12 @@ class DataSet(object):
 			return tempimages1, tempimages2, tempimages3, tempimages4, templabels
 		else:
 			end = self._index_in_epoch
-			return numpy.asarray(self._images1[start:end], dtype=numpy.float32),\
-				numpy.asarray(self._images2[start:end], dtype=numpy.float32),\
-				numpy.asarray(self._images3[start:end], dtype=numpy.float32),\
-				numpy.asarray(self._images4[start:end], dtype=numpy.float32),\
-				numpy.asarray(self._labels[start:end])
+			tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
+				imread(self._images1[start:end]), imread(self._images2[start:end]), imread(self._images3[start:end]), \
+				imread(self._images4[start:end]), self._labels
+			# return numpy.asarray(self._images1[start:end], dtype=numpy.float32),\
+			# 	numpy.asarray(self._images2[start:end], dtype=numpy.float32),\
+			# 	numpy.asarray(self._images3[start:end], dtype=numpy.float32),\
+			# 	numpy.asarray(self._images4[start:end], dtype=numpy.float32),\
+			# 	numpy.asarray(self._labels[start:end])
+			return tempimages1, tempimages2, tempimages3, tempimages4, templabels
