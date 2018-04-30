@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 
-
 ACT_LIST = ['lrelu', 'relu', 'linear', 'sigmoid', 'softmax', 'tanh']
 
 
@@ -11,19 +10,19 @@ def concat(tensors, axis, *args, **kwargs):
 
 def batch_norm(tensors, train=True, name='batch_norm'):
 	return tf.contrib.layers.batch_norm(
-		tensors, decay=0.9, updates_collections=None, epsilon=1e-5, is_training=train, scope=name, scale=True
+			tensors, decay=0.9, updates_collections=None, epsilon=1e-5, is_training=train, scope=name, scale=True
 	)
 
 
 def conv_cond_concat(x, y):
 	x_shapes = x.get_shape()
 	y_shapes = y.get_shape()
-	return concat([x, y*tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])], 3)
+	return concat([x, y * tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])], 3)
 
 
 def act_func(input_, activation):
 	if activation == 'lrelu':
-		return tf.maximum(input_, 0.2*input_, name='lrelu')
+		return tf.maximum(input_, 0.2 * input_, name='lrelu')
 	elif activation == 'relu':
 		return tf.nn.relu(input_, name='relu')
 	elif activation == 'sigmoid':
@@ -37,17 +36,17 @@ def act_func(input_, activation):
 			return input_
 
 
-def conv2dwithrandom(input_,  k=3, s=1, k2=0, name='con2drandom', activation='relu', withbatch=True):
+def conv2dwithrandom(input_, k=3, s=1, k2=0, name='con2drandom', activation='relu', withbatch=True):
 	assert activation in ACT_LIST, 'Unknown activation function'
 	if k2 is 0:
 		k2 = k
 	with tf.variable_scope(name):
 		w = tf.get_variable(
-			'w', [k, k2, input_.get_shape()[-1], 1], initializer=tf.truncated_normal_initializer(stddev=0.02)
+				'w', [k, k2, input_.get_shape()[-1], 1], initializer=tf.truncated_normal_initializer(stddev=0.02)
 		)
 		b = tf.get_variable('b', [1], initializer=tf.constant_initializer(0.0))
 		w2 = tf.get_variable(
-			'w2', [k, k2, input_.get_shape()[-1], 1], initializer=tf.truncated_normal_initializer(stddev=0.02)
+				'w2', [k, k2, input_.get_shape()[-1], 1], initializer=tf.truncated_normal_initializer(stddev=0.02)
 		)
 		b2 = tf.get_variable('b2', [1], initializer=tf.constant_initializer(0.0))
 
@@ -62,7 +61,7 @@ def conv2dwithrandom(input_,  k=3, s=1, k2=0, name='con2drandom', activation='re
 
 		stddev = tf.sqrt(tf.exp(conv1))
 		salt = tf.random_normal([tf.shape(input_)[0], tf.shape(input_)[1], tf.shape(input_)[2], 1], conv2,
-										stddev=stddev+0.002)
+				stddev=stddev + 0.002)
 
 		return salt
 
@@ -79,38 +78,39 @@ def makefilter(k, m):
 				## this is gabor filter
 				for k_ in range(k):
 					theta = np.mod(m_, 4) * np.pi / 4
-					xprime = (i-np.floor(pixel/2)) * np.cos(theta) + (j-np.floor(pixel/2)) * np.sin(theta)
-					yprime = (np.floor(pixel/2)-i) * np.sin(theta) + (j-np.floor(pixel/2)) * np.cos(theta)
-					temp = np.exp(-(np.square(xprime) + np.square(yprime))/2/5/5)*np.cos(xprime/2)
+					xprime = (i - np.floor(pixel / 2)) * np.cos(theta) + (j - np.floor(pixel / 2)) * np.sin(theta)
+					yprime = (np.floor(pixel / 2) - i) * np.sin(theta) + (j - np.floor(pixel / 2)) * np.cos(theta)
+					temp = np.exp(-(np.square(xprime) + np.square(yprime)) / 2 / 5 / 5) * np.cos(xprime / 2)
 					if m_ // int(k) == k_:
 						filt[i, j, k_, m_] = temp
-					# else:
-					# 	filt[i, j, k_, m_] = -temp
+				# else:
+				# 	filt[i, j, k_, m_] = -temp
 
-				## this is gaussian filter
-				# for k in range(m):
-				# 	if k == m_:
-				# 		filt[i, j, k, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
-				# 	else:
-				# 		filt[i, j, k, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
-				# This is just circle filter
-				# if np.sqrt(np.square(i-n-p.floor(pixel/2))+np.square(j-np.floor(pixel/2))) < diameter/pixel_size/2:
-				# 	for k in range(m):
-				# 		if k == m_:
-				# 			filt[i, j, m_, m_] = 0.5
-				# 		else:
-				# 			filt[i, j, k, m_] = -0.5
+			## this is gaussian filter
+			# for k in range(m):
+			# 	if k == m_:
+			# 		filt[i, j, k, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+			# 	else:
+			# 		filt[i, j, k, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+			# This is just circle filter
+			# if np.sqrt(np.square(i-n-p.floor(pixel/2))+np.square(j-np.floor(pixel/2))) < diameter/pixel_size/2:
+			# 	for k in range(m):
+			# 		if k == m_:
+			# 			filt[i, j, m_, m_] = 0.5
+			# 		else:
+			# 			filt[i, j, k, m_] = -0.5
 	return tf.constant_initializer(filt)
 
 
-def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=True, withweight=False, padding='SAME'):
+def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=True, withweight=False,
+		padding='SAME'):
 	assert activation in ACT_LIST, 'Unkwon activation function'
 	if k2 is 0:
 		k2 = k
 	with tf.variable_scope(name):
 		w = tf.get_variable(
 				# 'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=makefilter(input_.get_shape()[-1], output_dim)
-			'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=tf.truncated_normal_initializer(stddev=0.02)
+				'w', [k, k2, input_.get_shape()[-1], output_dim], initializer=tf.truncated_normal_initializer(stddev=0.02)
 		)
 		b = tf.get_variable('b', [output_dim], initializer=tf.constant_initializer(0.0))
 		conv = tf.nn.conv2d(input_, w, strides=[1, s, s, 1], padding=padding) + b
@@ -131,7 +131,7 @@ def decon2d_with_upsampling(
 		input_, output_shape, k=5, s=1, name='deconv2d+upsample', withbatch=False, activation='relu', issampling=False):
 	with tf.variable_scope(name):
 		w = tf.get_variable(
-			'w', [k, k, input_.get_shape()[-1], output_shape[-1]], initializer=tf.random_normal_initializer(stddev=0.02)
+				'w', [k, k, input_.get_shape()[-1], output_shape[-1]], initializer=tf.random_normal_initializer(stddev=0.02)
 		)
 		b = tf.get_variable('biases', [output_shape[-1]], initializer=tf.constant_initializer(0.0))
 
@@ -139,7 +139,7 @@ def decon2d_with_upsampling(
 		deconv = tf.nn.conv2d(upsample, w, strides=[1, s, s, 1], padding='SAME') + b
 
 		return (lambda conv, tag: act_func(
-			batch_norm(conv, train=issampling), activation) if tag else act_func(conv, activation))(deconv, withbatch)
+				batch_norm(conv, train=issampling), activation) if tag else act_func(conv, activation))(deconv, withbatch)
 
 
 def deconv2d(
@@ -147,7 +147,7 @@ def deconv2d(
 		issampling=False):
 	with tf.variable_scope(name):
 		w = tf.get_variable(
-			'w', [k, k, output_shape[-1], input_.get_shape()[-1]], initializer=tf.random_normal_initializer(stddev=0.02)
+				'w', [k, k, output_shape[-1], input_.get_shape()[-1]], initializer=tf.random_normal_initializer(stddev=0.02)
 		)
 
 		deconv = tf.nn.conv2d_transpose(input_, w, output_shape=output_shape, strides=[1, s, s, 1])
@@ -156,12 +156,12 @@ def deconv2d(
 
 		if with_w:
 			return (lambda conv, tag: act_func(
-				batch_norm(conv, train=not issampling),
-				activation) if tag else act_func(conv, activation))(deconv, withbatch), w, b
+					batch_norm(conv, train=not issampling),
+					activation) if tag else act_func(conv, activation))(deconv, withbatch), w, b
 		else:
 			return (lambda conv, tag: act_func(
-				batch_norm(conv, train=not issampling),
-				activation) if tag else act_func(conv, activation))(deconv, withbatch)
+					batch_norm(conv, train=not issampling),
+					activation) if tag else act_func(conv, activation))(deconv, withbatch)
 
 
 def maxpool(input_, k, s, name='maxpool'):
@@ -181,12 +181,12 @@ def fc(
 		input_ = makeflat(input_)
 	with tf.variable_scope(name):
 		w = tf.get_variable(
-			'w', [input_.get_shape()[1], output_dim], initializer=tf.random_normal_initializer(stddev=0.02))
+				'w', [input_.get_shape()[1], output_dim], initializer=tf.random_normal_initializer(stddev=0.02))
 		b = tf.get_variable(
-			'biases', [output_dim], initializer=tf.constant_initializer(0.0)
+				'biases', [output_dim], initializer=tf.constant_initializer(0.0)
 		)
 		if withbatch:
-			h = act_func(batch_norm(tf.matmul(input_, w)+b, train=not issampling), activation=activation)
+			h = act_func(batch_norm(tf.matmul(input_, w) + b, train=not issampling), activation=activation)
 		else:
 			h = act_func(tf.matmul(input_, w) + b, activation=activation)
 		if withdropout:

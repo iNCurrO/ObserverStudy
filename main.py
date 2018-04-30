@@ -3,7 +3,7 @@ from models.SingleTower import STmodel
 import tensorflow as tf
 import os
 import tensorflow.contrib.slim as slim
-
+import time
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -17,9 +17,11 @@ def show_all_variables():
 def main(_):
 	with tf.Session() as sess:
 		ckdir = './cp'
+		start_time = time.time()
 		srcnn = STmodel(sess, checkpoint_dir=ckdir,
 							sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
 		show_all_variables()
+		print('!!{}sec to ready'.format(time.time()-start_time))
 		srcnn.train()
 		# srcnn.resetdata(dataset_name=['observer2mmtransramp'])
 		# srcnn.loadandsampling()

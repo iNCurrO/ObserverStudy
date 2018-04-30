@@ -8,23 +8,23 @@ from scipy import io
 from random import shuffle
 
 
-# def readimage(fname):
-# 	# queue = tf.train.string_input_producer(list(fname), shuffle=False, seed=None)
-# 	# reader = tf.WholeFileReader()
-# 	# filename, data = reader.read(queue)
-# 	# image = tf.image.decode_png(data, channels=3)
-# 	# image.set_shape([64, 64, 3])
-# 	# image = tf.image.rgb_to_grayscale(image)
-# 	# return tf.to_float(image)
-# 	tempimg = Image.open(fname).convert('L')
-# 	resultimg = np.asarray(tempimg, dtype=float)
-# 	if tempimg.mode == 'L':
-# 		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 1])
-# 	else:
-# 		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 3])
-# 	tempimg.close()
-# 	# print(np.min((resultimg/127.5 - 1.).astype(np.float32)))
-# 	return (resultimg/255).astype(np.float32)
+def readimage(fname):
+	# queue = tf.train.string_input_producer(list(fname), shuffle=False, seed=None)
+	# reader = tf.WholeFileReader()
+	# filename, data = reader.read(queue)
+	# image = tf.image.decode_png(data, channels=3)
+	# image.set_shape([64, 64, 3])
+	# image = tf.image.rgb_to_grayscale(image)
+	# return tf.to_float(image)
+	tempimg = Image.open(fname).convert('L')
+	resultimg = np.asarray(tempimg, dtype=float)
+	if tempimg.mode == 'L':
+		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 1])
+	else:
+		resultimg = np.reshape(resultimg, [resultimg.shape[0], resultimg.shape[1], 3])
+	tempimg.close()
+	# print(np.min((resultimg/127.5 - 1.).astype(np.float32)))
+	return (resultimg/255).astype(np.float32)
 
 
 def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
@@ -89,6 +89,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 			# tempimg2 = readimage(templist2[i + datanum*j])
 			# tempimg3 = readimage(templist3[i + datanum*j])
 			# tempimg4 = readimage(templist4[i + datanum*j])
+			# tempimg = [tempimg1, tempimg2, tempimg3, tempimg4]
 			tempimg = [templist1[i + datanum*j], templist2[i + datanum*j], templist3[i + datanum*j], templist4[i + datanum*j]]
 			# templabel = label[:, i + datanum*j]
 			if i > numtrain+numval:
