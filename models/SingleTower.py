@@ -118,12 +118,12 @@ class STmodel(object):
 		with tf.variable_scope('network') as scope:
 			if reuse:
 				scope.reuse_variables()
-			tempcon1 = tf.concat([img1, img2], axis=1)
-			tempcon2 = tf.concat([img3, img4], axis=1)
-			image = tf.concat([tempcon1, tempcon2], axis=2)
+			# tempcon1 = tf.concat([img1, img2], axis=1)
+			# tempcon2 = tf.concat([img3, img4], axis=1)
+			# image = tf.concat([tempcon1, tempcon2], axis=2)
 			print(img1.shape)
-			# image = tf.concat([img1, img2, img3, img4], axis=3)
-			basechannel = 16
+			image = tf.concat([img1, img2, img3, img4], axis=3)
+			basechannel = 32
 			h0_0 = conv2d(image, basechannel, k=9, name='d_conv0_0', activation='lrelu')
 			h0_1 = conv2d(h0_0, basechannel, k=9, name='d_conv0_1', activation='lrelu', withbatch=False)
 			h0_2 = conv2d(h0_1, basechannel, k=9, name='d_conv0_2', activation='lrelu', withbatch=False)
@@ -197,10 +197,11 @@ class STmodel(object):
 					print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
 							(epoch, time.time() - start_time, loss, accuracy * 100)
 					)
+					self.test_writer.add_summary(summary, counter)
 
 			valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
-			loss, accuracy, summary= self._sess.run([
-				self._loss, self._accuracy, self.merged],
+			loss, accuracy = self._sess.run([
+				self._loss, self._accuracy],
 				feed_dict={
 					self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
 					self.labels: vallabel
@@ -208,7 +209,6 @@ class STmodel(object):
 			print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
 					(epoch, time.time() - start_time, loss, accuracy*100)
 			)
-			self.test_writer.add_summary(summary, counter)
 			stopflag = True
 		stopflag = True
 		counter = 0
