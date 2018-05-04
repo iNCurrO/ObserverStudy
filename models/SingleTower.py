@@ -118,34 +118,39 @@ class STmodel(object):
 		with tf.variable_scope('network') as scope:
 			if reuse:
 				scope.reuse_variables()
-			# tempcon1 = tf.concat([img1, img2], axis=1)
-			# tempcon2 = tf.concat([img3, img4], axis=1)
+			tempcon1 = tf.concat([img1, img2], axis=1)
+			tempcon2 = tf.concat([img3, img4], axis=1)
+			image = tf.concat([tempcon1, tempcon2], axis=2)
 			print(img1.shape)
-			image = tf.concat([img1, img2, img3, img4], axis=3)
-			basechannel = 128
+			# image = tf.concat([img1, img2, img3, img4], axis=3)
+			basechannel = 16
 			h0_0 = conv2d(image, basechannel, k=9, name='d_conv0_0', activation='lrelu')
-			h0_1 = conv2d(h0_0, basechannel, k=9, name='d_conv0_1', activation='lrelu')
-			h0_pool = maxpool(h0_1, k=5, s=2, name='d_conv0_maxpool')
+			h0_1 = conv2d(h0_0, basechannel, k=9, name='d_conv0_1', activation='lrelu', withbatch=False)
+			h0_2 = conv2d(h0_1, basechannel, k=9, name='d_conv0_2', activation='lrelu', withbatch=False)
+			h0_pool = avgpool(h0_2, k=5, s=2, name='d_conv0_maxpool')
 
 			h1_0 = conv2d(h0_pool, basechannel*2, name='d_conv1_0', activation='lrelu')
-			h1_1 = conv2d(h1_0, basechannel*2, name='d_conv1_1', activation='lrelu')
-			h1_pool = maxpool(h1_1, k=5, s=2, name='d_conv1_maxpool')
-			#
-			# h2_0 = conv2d(h1_pool, basechannel*4, name='d_conv2_0', activation='lrelu')
-			# h2_1 = conv2d(h2_0, basechannel*4, name='d_conv2_1', activation='lrelu')
-			# h2_pool = maxpool(h2_1, k=5, s=2, name='d_conv2_maxpool')
+			h1_1 = conv2d(h1_0, basechannel*2, name='d_conv1_1', activation='lrelu', withbatch=False)
+			h1_2 = conv2d(h1_1, basechannel*2, name='d_conv1_2', activation='lrelu', withbatch=False)
+			h1_pool = avgpool(h1_2, k=5, s=2, name='d_conv1_maxpool')
 
-			# h3_0 = conv2d(h2_pool, basechannel*8, name='d_conv3_0', activation='lrelu')
-			# h3_1 = conv2d(h3_0, basechannel*8, name='d_conv3_1', activation='lrelu')
-			# h3_pool = maxpool(h3_1, k=3, s=2, name='d_conv3_maxpool')
+			h2_0 = conv2d(h1_pool, basechannel*4, name='d_conv2_0', activation='lrelu')
+			h2_1 = conv2d(h2_0, basechannel*4, name='d_conv2_1', activation='lrelu', withbatch=False)
+			h2_2 = conv2d(h2_1, basechannel*4, name='d_conv2_2', activation='lrelu', withbatch=False)
+			h2_pool = avgpool(h2_2, k=5, s=2, name='d_conv2_maxpool')
+			#
+			h3_0 = conv2d(h2_pool, basechannel*8, name='d_conv3_0', activation='lrelu')
+			h3_1 = conv2d(h3_0, basechannel*8, name='d_conv3_1', activation='lrelu', withbatch=False)
+			h3_2 = conv2d(h3_1, basechannel*8, name='d_conv3_2', activation='lrelu', withbatch=False)
+			h3_pool = avgpool(h3_2, k=5, s=2, name='d_conv3_maxpool')
 
 			# h4 = fc(h1_pool, 1024, activation='lrelu', name='d_fc_1')
 			# h4 = tf.nn.dropout(h4, keep_prob=0.5)
-			h5 = fc(h1_pool, 1024, activation='lrelu', name='d_fc_2', withdropout=True)
+			h5 = fc(h3_pool, 512, activation='lrelu', name='d_fc_2', withdropout=True)
 			h6 = fc(h5, 4, activation='linear', name='d_fc_3')
 			return h6
 
-	def train(self, epoch_num=50000, lr=1e-3, beta1=0.5):
+	def train(self, epoch_num=50, lr=1e-3, beta1=0.5):
 		optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
 		tf.global_variables_initializer().run()
 
@@ -181,6 +186,17 @@ class STmodel(object):
 
 				if self._dataset.train.getposition == 0:
 					stopflag = False
+				if np.mod(counter, 200) == 1:
+					valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
+					loss, accuracy, summary = self._sess.run([
+						self._loss, self._accuracy, self.merged],
+							feed_dict={
+								self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
+								self.labels: vallabel
+							})
+					print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
+							(epoch, time.time() - start_time, loss, accuracy * 100)
+					)
 
 			valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
 			loss, accuracy, summary= self._sess.run([
