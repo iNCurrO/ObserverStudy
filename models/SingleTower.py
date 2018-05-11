@@ -19,7 +19,7 @@ class STmodel(object):
 		self._checkpoint_dir = checkpoint_dir
 		self._sample_dir = sample_dir
 		self._c_dim = 1
-		self._dataset = loaddata(dataset_name, valrate=0.05, testrate=0.05)
+		self._dataset = loaddata(dataset_name, valrate=0.02, testrate=0.02)
 		# self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
 		self.inputs1 = tf.placeholder(
 			tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -96,9 +96,9 @@ class STmodel(object):
 			image = tf.concat([img1, img2, img3, img4], axis=3)
 			basechannel = 8
 			h0_0 = conv2d(image, basechannel, name='d_conv0_0', activation='lrelu')
-			# h0_1 = conv2d(h0_0, basechannel, name='d_conv0_1', activation='lrelu', withbatch=False)
+			h0_1 = conv2d(h0_0, basechannel, name='d_conv0_1', activation='lrelu', withbatch=False)
 			# h0_2 = conv2d(h0_1, basechannel, name='d_conv0_2', activation='lrelu', withbatch=False)
-			h0_pool = avgpool(h0_0, k=5, s=2, name='d_conv0_maxpool')
+			h0_pool = avgpool(h0_1, k=5, s=2, name='d_conv0_maxpool')
 
 			# h1_0 = conv2d(h0_pool, basechannel*2, name='d_conv1_0', activation='lrelu')
 			# h1_1 = conv2d(h1_0, basechannel*2, name='d_conv1_1', activation='lrelu', withbatch=False)
@@ -136,13 +136,13 @@ class STmodel(object):
 				counter += 1
 				img1, img2, img3, img4, batch_label = self._dataset.train.next_batch(self._batch_size, must_full=True)
 				self._sess.run(optim, feed_dict={
-					self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4, self.labels: batch_label[:, 0]
+					self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4, self.labels: batch_label
 				})
 				if np.mod(counter, 10) == 1:
 					loss, accuracy, summary = self._sess.run([self._loss, self._accuracy, self.merged],
 							feed_dict={
 						self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-						self.labels: batch_label[:, 0]
+						self.labels: batch_label
 					})
 					print("Epoch: [{0:2d}] [{1:4d}/{2:4d}] time: {3:4.4f}, loss: {4:.8f}, accuracy: {5:3.3f}".format(
 						epoch, self._dataset.train.getposition, self._dataset.train.num_example, time.time() - start_time,
