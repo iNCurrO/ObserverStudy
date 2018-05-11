@@ -16,7 +16,7 @@ def show_all_variables():
 
 def main(_):
 	with tf.Session() as sess:
-		ckdir = './cp2'
+		ckdir = './floor_combo1_floor1_channel8'
 		start_time = time.time()
 		srcnn = STmodel(sess, checkpoint_dir=ckdir,
 							sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])

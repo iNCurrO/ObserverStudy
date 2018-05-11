@@ -123,30 +123,30 @@ class STmodel(object):
 			# image = tf.concat([tempcon1, tempcon2], axis=2)
 			print(img1.shape)
 			image = tf.concat([img1, img2, img3, img4], axis=3)
-			basechannel = 32
-			h0_0 = conv2d(image, basechannel, k=9, name='d_conv0_0', activation='lrelu')
-			h0_1 = conv2d(h0_0, basechannel, k=9, name='d_conv0_1', activation='lrelu', withbatch=False)
-			h0_2 = conv2d(h0_1, basechannel, k=9, name='d_conv0_2', activation='lrelu', withbatch=False)
-			h0_pool = avgpool(h0_2, k=5, s=2, name='d_conv0_maxpool')
+			basechannel = 8
+			h0_0 = conv2d(image, basechannel, name='d_conv0_0', activation='lrelu')
+			# h0_1 = conv2d(h0_0, basechannel, name='d_conv0_1', activation='lrelu', withbatch=False)
+			# h0_2 = conv2d(h0_1, basechannel, name='d_conv0_2', activation='lrelu', withbatch=False)
+			h0_pool = avgpool(h0_0, k=5, s=2, name='d_conv0_maxpool')
 
-			h1_0 = conv2d(h0_pool, basechannel*2, name='d_conv1_0', activation='lrelu')
-			h1_1 = conv2d(h1_0, basechannel*2, name='d_conv1_1', activation='lrelu', withbatch=False)
-			h1_2 = conv2d(h1_1, basechannel*2, name='d_conv1_2', activation='lrelu', withbatch=False)
-			h1_pool = avgpool(h1_2, k=5, s=2, name='d_conv1_maxpool')
-
-			h2_0 = conv2d(h1_pool, basechannel*4, name='d_conv2_0', activation='lrelu')
-			h2_1 = conv2d(h2_0, basechannel*4, name='d_conv2_1', activation='lrelu', withbatch=False)
-			h2_2 = conv2d(h2_1, basechannel*4, name='d_conv2_2', activation='lrelu', withbatch=False)
-			h2_pool = avgpool(h2_2, k=5, s=2, name='d_conv2_maxpool')
+			# h1_0 = conv2d(h0_pool, basechannel*2, name='d_conv1_0', activation='lrelu')
+			# h1_1 = conv2d(h1_0, basechannel*2, name='d_conv1_1', activation='lrelu', withbatch=False)
+			# h1_2 = conv2d(h1_1, basechannel*2, name='d_conv1_2', activation='lrelu', withbatch=False)
+			# h1_pool = avgpool(h1_2, k=5, s=2, name='d_conv1_maxpool')
 			#
-			h3_0 = conv2d(h2_pool, basechannel*8, name='d_conv3_0', activation='lrelu')
-			h3_1 = conv2d(h3_0, basechannel*8, name='d_conv3_1', activation='lrelu', withbatch=False)
-			h3_2 = conv2d(h3_1, basechannel*8, name='d_conv3_2', activation='lrelu', withbatch=False)
-			h3_pool = avgpool(h3_2, k=5, s=2, name='d_conv3_maxpool')
+			# h2_0 = conv2d(h1_pool, basechannel*4, name='d_conv2_0', activation='lrelu')
+			# h2_1 = conv2d(h2_0, basechannel*4, name='d_conv2_1', activation='lrelu', withbatch=False)
+			# h2_2 = conv2d(h2_1, basechannel*4, name='d_conv2_2', activation='lrelu', withbatch=False)
+			# h2_pool = avgpool(h2_2, k=5, s=2, name='d_conv2_maxpool')
+			# #
+			# h3_0 = conv2d(h2_pool, basechannel*8, name='d_conv3_0', activation='lrelu')
+			# h3_1 = conv2d(h3_0, basechannel*8, name='d_conv3_1', activation='lrelu', withbatch=False)
+			# h3_2 = conv2d(h3_1, basechannel*8, name='d_conv3_2', activation='lrelu', withbatch=False)
+			# h3_pool = avgpool(h3_2, k=5, s=2, name='d_conv3_maxpool')
 
 			# h4 = fc(h1_pool, 1024, activation='lrelu', name='d_fc_1')
 			# h4 = tf.nn.dropout(h4, keep_prob=0.5)
-			h5 = fc(h3_pool, 512, activation='lrelu', name='d_fc_2', withdropout=True)
+			h5 = fc(h0_pool, 256, activation='lrelu', name='d_fc_2', withdropout=True)
 			h6 = fc(h5, 4, activation='linear', name='d_fc_3')
 			return h6
 
