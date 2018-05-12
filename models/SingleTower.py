@@ -190,11 +190,11 @@ class STmodel(object):
 			img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
 			temploss = self._loss.eval({
 				self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-				self.labels: batch_label[:, 0]
+				self.labels: batch_label
 			})
 			tempaccuracy = self._accuracy.eval({
 				self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-				self.labels: batch_label[:, 0]
+				self.labels: batch_label
 			})
 			loss += temploss
 			accuracy += tempaccuracy
