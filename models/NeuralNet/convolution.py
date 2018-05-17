@@ -71,34 +71,35 @@ def makefilter(k, m):
 	diameter = 1
 	sigma = 8
 	pixel = 65
+	directions = np.floor(m/4)
 	filt = np.zeros([pixel, pixel, k, m])
 	for m_ in range(m):
 		for i in range(pixel):
 			for j in range(pixel):
 				## this is gabor filter
 				for k_ in range(k):
-					theta = np.mod(m_, 4) * np.pi / 4
+					theta = np.mod(m_, directions) * np.pi / directions
 					xprime = (i - np.floor(pixel / 2)) * np.cos(theta) + (j - np.floor(pixel / 2)) * np.sin(theta)
 					yprime = (np.floor(pixel / 2) - i) * np.sin(theta) + (j - np.floor(pixel / 2)) * np.cos(theta)
 					temp = np.exp(-(np.square(xprime) + np.square(yprime)) / 2 / 5 / 5) * np.cos(xprime / 2)
 					if m_ // int(k) == k_:
 						filt[i, j, k_, m_] = temp
-				# else:
-				# 	filt[i, j, k_, m_] = -temp
+					else:
+						filt[i, j, k_, m_] = -temp
 
-			## this is gaussian filter
-			# for k in range(m):
-			# 	if k == m_:
-			# 		filt[i, j, k, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
-			# 	else:
-			# 		filt[i, j, k, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
-			# This is just circle filter
-			# if np.sqrt(np.square(i-n-p.floor(pixel/2))+np.square(j-np.floor(pixel/2))) < diameter/pixel_size/2:
-			# 	for k in range(m):
-			# 		if k == m_:
-			# 			filt[i, j, m_, m_] = 0.5
-			# 		else:
-			# 			filt[i, j, k, m_] = -0.5
+				# # this is gaussian filter
+				# for k in range(m):
+				# 	if k == m_:
+				# 		filt[i, j, k, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+				# 	else:
+				# 		filt[i, j, k, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+				# This is just circle filter
+				# if np.sqrt(np.square(i-n-p.floor(pixel/2))+np.square(j-np.floor(pixel/2))) < diameter/pixel_size/2:
+				# 	for k in range(m):
+				# 		if k == m_:
+				# 			filt[i, j, m_, m_] = 0.5
+				# 		else:
+				# 			filt[i, j, k, m_] = -0.5
 	return tf.constant_initializer(filt)
 
 
