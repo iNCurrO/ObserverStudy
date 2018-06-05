@@ -177,6 +177,13 @@ def maxpool(input_, k, s, name='maxpool'):
 def avgpool(input_, k, s, name='avgpool'):
 	with tf.variable_scope(name):
 		return tf.nn.avg_pool(input_, ksize=[1, k, k, 1], strides=[1, s, s, 1], padding='SAME')
+	
+	
+def GAPool(input_, name='GAP'):
+	with tf.variable_scope(name):
+		xshape = input_.get_shape()[1]
+		yshape = input_.get_shape()[2]
+		return tf.nn.avg_pool(input_, ksize=[1, xshape, yshape, 1], padding='VALID')
 
 
 def fc(
