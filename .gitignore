@@ -1,5 +1,6 @@
 # log folder
 cp*/
+floor*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -103,3 +104,4 @@ ENV/
 
 # mypy
 .mypy_cache/
+train*/
