@@ -16,10 +16,9 @@ def show_all_variables():
 
 def main(_):
     with tf.Session() as sess:
-        ckdir = './cp4'
+        ckdir = './floor24_noPooling_channel16_ForOne'
         srcnn = STmodel(sess, checkpoint_dir=ckdir,
-                        dataset_name=['observer1mmtranshann', 'observer1mmtransramp',
-                                      'observer2mmtranshann'])
+                        dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
         show_all_variables()
         srcnn.train()
         # 		srcnn.resetdata(dataset_name=['observer2mmtransramp'])
