@@ -15,8 +15,10 @@ def show_all_variables():
 
 
 def main(_):
-    with tf.Session() as sess:
-        ckdir = './floor24_noPooling_channel16_ForOne'
+    config = tf.ConfigProto(log_device_placement=True)
+    config.gpu_options.allow_growth = True
+    with tf.Session(config=config) as sess:
+        ckdir = './FORONE_floor24_noPooling_channel16'
         srcnn = STmodel(sess, checkpoint_dir=ckdir,
                         dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
         show_all_variables()
@@ -54,22 +56,22 @@ def main(_):
         srcnn.loadandlabelsampling()
         srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=4)
         srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=1)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=2)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=3)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=4)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=1)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=2)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=3)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=4)
-        srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=1)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=2)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=3)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=4)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=1)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=2)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=3)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer2mmtranshann'], label_dice=4)
+        # srcnn.loadandlabelsampling()
 
 
 #

@@ -31,7 +31,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
     assert (valrate <= 1.0) & (testrate <= 1.0) & (valrate + testrate <= 1.0), 'From loaddata ' \
                                                                                'Validation rate or testrate can\'t over 1'
     data_dir_ = []
-    label = np.zeros([2, 0])
+    label = np.zeros([4, 0])
     for dataset in dataname:
         if dataset == 'observer2mmtransramp':
             data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_ramp', '*'))
@@ -128,7 +128,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
 
 def loadsampledata(dataname, sampledatanum=1000, dir_='D:\CTgit\Image', labeldice=1):
     data_dir_ = []
-    label = np.zeros([2, 0])
+    label = np.zeros([4, 0])
     for dataset in dataname:
         if dataset == 'observer2mmtransramp':
             data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_2mm_trans_ramp', '*'))

@@ -1,6 +1,7 @@
 import numpy
 import scipy.misc
 
+
 def imread(pathes):
     return numpy.array([(scipy.misc.imread(path) / 255) for path in pathes]).astype(numpy.float32)
 
@@ -11,12 +12,12 @@ class DataSet(object):
             'From Loading data... Image Shape is strange ({}). please check. '.format(images.shape)
         assert images.shape[0] == label.shape[0], "From Loading data... # of image and label differ please check" \
                                                   "image {} : label {} ,".format(images.shape[0], label.shape[0])
-        # self._num_examples, self._image_width, self._image_height = images.shape[0], images.shape[1], images.shape[2]
+        self._num_examples = images.shape[0]
         self._index_in_epoch = 0
-        # perm = numpy.arange(self._num_examples)
-        # numpy.random.shuffle(perm)
-        self._images = images   # [perm]
-        self._labels = label    # [perm]
+        perm = numpy.arange(self._num_examples)
+        numpy.random.shuffle(perm)
+        self._images = images[perm]
+        self._labels = label[perm]
 
     @property
     def getimage(self):
@@ -44,19 +45,17 @@ class DataSet(object):
             perm = numpy.arange(self._num_examples)
             numpy.random.shuffle(perm)
             self._images, self._labels = self._images[perm], self._labels[perm]
-            # tempimages, templabels = self._images[start:end], self._labels[start:end]
-            tempimages, templabels = imread(self._images[start:end]), self._labels[start, end]
+            tempimages, templabels = imread(self._images[start:end])[:, :, :, None], self._labels[start: end]
             return tempimages, templabels
         elif self._index_in_epoch >= self._num_examples:
             end = self._num_examples
             self._index_in_epoch = 0
-            # tempimages, templabels = self._images[start:end], self._labels[start:end]
-            tempimages, templabels = imread(self._images[start:end]), self._labels[start, end]
+            tempimages, templabels = imread(self._images[start:end])[:, :, :, None], self._labels[start: end]
             perm = numpy.arange(self._num_examples)
             numpy.random.shuffle(perm)
             self._images, self._labels = self._images[perm], self._labels[perm]
             return tempimages, templabels
         else:
             end = self._index_in_epoch
-            tempimages, templabels = imread(self._images[start:end]), self._labels[start, end]
+            tempimages, templabels = imread(self._images[start:end])[:, :, :, None], self._labels[start: end]
             return tempimages, templabels

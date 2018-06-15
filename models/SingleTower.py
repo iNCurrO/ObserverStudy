@@ -7,7 +7,7 @@ from scipy import io
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=65, batch_size=256, sample_num=64,
+            self, sess, img_size=65, batch_size=256, sample_num=100,
             dataset_name=[], checkpoint_dir=None, sample_dir=[], label_dice=1
     ):
         self._sess = sess
@@ -24,7 +24,7 @@ class STmodel(object):
             self._sample_dataset = loadsampledata(sample_dir, labeldice=label_dice)
         self._c_dim = 1
         if len(dataset_name) != 0:
-            self._dataset = loaddata(dataset_name, valrate=0.1, testrate=0.05)
+            self._dataset = loaddata(dataset_name, valrate=0.01, testrate=0.01)
         # self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
         self.inputs = tf.placeholder(
             tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -33,7 +33,6 @@ class STmodel(object):
             tf.float16, [None, 2]
         )
         self._network = self.OneImageNetwork(self.inputs)
-        # self._network = self.network(self.inputs1, self.inputs2, self.inputs3, self.inputs4)
         t_vars = tf.trainable_variables()
 
         self._loss = tf.reduce_mean(
@@ -119,7 +118,7 @@ class STmodel(object):
             h33 = fc(h23, 2, activation='linear', name='d_fc')
             return h33
 
-    def train(self, epoch_num=10, lr=1e-4, beta1=0.9):
+    def train(self, epoch_num=50, lr=1e-5, beta1=0.9):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
@@ -155,19 +154,27 @@ class STmodel(object):
                 if self._dataset.train.getposition == 0:
                     stopflag = False
 
+                if np.mod(counter, 200) == 1:
+                    valdata, vallabel = self._dataset.val.next_batch(100)
+                    loss, accuracy, summary = self._sess.run([
+                        self._loss, self._accuracy, self.merged],
+                        feed_dict={
+                            self.inputs: valdata, self.labels: vallabel
+                        })
+                    print(
+                        "VEpoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f} ".format
+                            (
+                            epoch, time.time() - start_time, loss, accuracy * 100
+                        )
+                    )
+                    self.test_writer.add_summary(summary, counter)
+
             valdata, vallabel = self._dataset.val.next_batch(100)
             loss, accuracy, summary = self._sess.run([
                 self._loss, self._accuracy, self.merged],
                 feed_dict={
                     self.inputs: valdata, self.labels: vallabel
                 })
-            # loss = self._loss.eval({
-            #
-            # })
-            # accuracy = self._accuracy.eval({
-            # 	self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
-            # 	self.labels: vallabel
-            # })
             print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
                 (
                 epoch, time.time() - start_time, loss, accuracy * 100
@@ -181,19 +188,21 @@ class STmodel(object):
         accuracy = 0
         while stopflag is True:
             counter += 1
-            img, batch_label = self._dataset.test.next_batch(self._batch_size, must_full=True)
+            img, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
             temploss = self._loss.eval({
-                self.inputs: img, self.labels: batch_label
+                self.inputs: img,
+                self.labels: batch_label
             })
             tempaccuracy = self._accuracy.eval({
-                self.inputs: img, self.labels: batch_label
+                self.inputs: img,
+                self.labels: batch_label
             })
             loss += temploss
             accuracy += tempaccuracy
+            print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
+                time.time() - start_time, temploss, tempaccuracy * 100))
             if self._dataset.test.getposition == 0:
                 stopflag = False
-        print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
-            time.time() - start_time, loss / counter, accuracy * 100 / counter))
 
         self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"), global_step=counter)
 
@@ -235,8 +244,6 @@ class STmodel(object):
     def loadandlabelsampling(self, number=100):
         ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
         self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
-        loss = 0
-        accuracy = 0
         start_time = time.time()
         img = self._sample_dataset.getimage
         batch_label = self._sample_dataset.getlabels
