@@ -30,21 +30,16 @@ class DataSet(object):
         # 	'From Loading data... Image Shape is strange ({}). please check. '.format(images1.shape)
         assert images1.shape[0] == label.shape[0], "From Loading data... # of image and label differ please check" \
                                                    "image {} : label {} ,".format(images1.shape[0], label.shape[0])
-        # self._num_examples, self._image_width, self._image_height = images1.shape[0], images1.shape[1], images1.shape[2]
         self._num_examples = images1.shape[0]
         self._index_in_epoch = 0
-        # perm = numpy.arange(self._num_examples)
-        # numpy.random.shuffle(perm)
-        # self._images1 = images1[perm]
-        # self._images2 = images2[perm]
-        # self._images3 = images3[perm]
-        # self._images4 = images4[perm]
-        # self._labels = label[perm]
-        self._images1 = images1
-        self._images2 = images2
-        self._images3 = images3
-        self._images4 = images4
+        self._images = images1 + images2 + images3 + images4
         self._labels = label
+        perm = numpy.arange(self._num_examples)
+        numpy.random.shuffle(perm)
+        self._labels = self._labels[perm]
+        perm = numpy.arange(self._num_examples * 3)
+        numpy.random.shuffle(perm)
+        self._images = self._images[perm]
 
     @property
     def getimage(self):
@@ -71,43 +66,33 @@ class DataSet(object):
             self._index_in_epoch = 0
             perm = numpy.arange(self._num_examples)
             numpy.random.shuffle(perm)
-            self._images1, self._images2, self._images3, self._images4, self._labels = \
-                self._images1[perm], self._images2[perm], self._images3[perm], self._images4[perm], self._labels[perm]
-            ## ===================================
-            # tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-            # 	self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end],\
-            # 	self._labels[start:end]
+            self._labels = self._labels[perm]
+            perm = numpy.arange(self._num_examples * 3)
+            numpy.random.shuffle(perm)
+            self._images = self._images[perm]
             tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
-                imread(self._images3[start:end])[:, :, :, None], imread(self._images4[start:end])[:, :, :, None], \
+                imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
+                imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
                 self._labels[start:end]
-            ## =====================================================
             return tempimages1, tempimages2, tempimages3, tempimages4, templabels
         elif self._index_in_epoch >= self._num_examples:
             end = self._num_examples
             self._index_in_epoch = 0
-
-            ####################################################################
-            # tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-            # 	self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end], \
-            # 	self._labels[start:end]
             tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
-                imread(self._images3[start:end])[:, :, :, None], imread(self._images4[start:end])[:, :, :, None], \
+                imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
+                imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
                 self._labels[start:end]
-            ######################################################################
             perm = numpy.arange(self._num_examples)
             numpy.random.shuffle(perm)
-            self._images1, self._images2, self._images3, self._images4, self._labels = \
-                self._images1[perm], self._images2[perm], self._images3[perm], self._images4[perm], self._labels[perm]
+            self._labels = self._labels[perm]
+            perm = numpy.arange(self._num_examples * 3)
+            numpy.random.shuffle(perm)
+            self._images = self._images[perm]
             return tempimages1, tempimages2, tempimages3, tempimages4, templabels
         else:
             end = self._index_in_epoch
             tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
-                imread(self._images3[start:end])[:, :, :, None], imread(self._images4[start:end])[:, :, :, None], \
+                imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
+                imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
                 self._labels[start:end]
-            # tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-            # 	self._images1[start:end], self._images2[start:end], self._images3[start:end], self._images4[start:end], \
-            # 	self._labels[start:end]
             return tempimages1, tempimages2, tempimages3, tempimages4, templabels
