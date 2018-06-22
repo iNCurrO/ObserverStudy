@@ -32,7 +32,7 @@ class DataSet(object):
                                                    "image {} : label {} ,".format(images1.shape[0], label.shape[0])
         self._num_examples = images1.shape[0]
         self._index_in_epoch = 0
-        self._images = images1 + images2 + images3 + images4
+        self._images = numpy.append(numpy.append(numpy.append(images1, images2), images3), images4)
         self._labels = label
         perm = numpy.arange(self._num_examples)
         numpy.random.shuffle(perm)
