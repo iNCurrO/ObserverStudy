@@ -21,7 +21,7 @@ class DataSet(object):
 
     @property
     def getimage(self):
-        return self._images
+        return imread(self._images)[:, :, :, None]
 
     @property
     def getlabels(self):

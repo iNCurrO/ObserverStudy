@@ -65,9 +65,13 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
     datalist2 = [[], [], []]
     templist1 = []
     templist2 = []
+    templist3 = []
+    templist4 = []
     for i in range(len(dataname)):  # 4
         templist1 = templist1 + glob.glob(os.path.join(data_dir_[0 + 4 * i], '*'))  # 80000
         templist2 = templist2 + glob.glob(os.path.join(data_dir_[1 + 4 * i], '*'))
+        # templist3 = templist3 + glob.glob(os.path.join(data_dir_[1 + 4 * i], '*'))
+        # templist4 = templist4 + glob.glob(os.path.join(data_dir_[1 + 4 * i], '*'))
     datanum = int(len(templist1) / len(dataname))  # 20000
     numval = int(np.floor(valrate * datanum))
     numtest = int(np.floor(testrate * datanum))
@@ -78,30 +82,36 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
             # tempimg1 = readimage(templist1[i + datanum * j])
             # tempimg2 = readimage(templist2[i + datanum * j])
             # tempimg = [tempimg1, tempimg2]
-            tempimg = [templist1[i + datanum * j], templist2[i + datanum * j]]
+            tempimg = [templist1[i + datanum * j], templist2[i + datanum * j]]#, templist3[i + datanum * j]] #, templist4[i + datanum * j]]
             if i >= numtrain + numval:
                 # templabel1 = np.asarray([1, 0], dtype=np.int8)
                 # templabel2 = np.asarray([0, 1], dtype=np.int8)
                 datalist1[2] += [tempimg[0]]
                 datalist2[2] += [tempimg[1]]
+                # datalist2[2] += [tempimg[2]]
+                # datalist2[2] += [tempimg[3]]
             elif i >= numtrain:
                 # templabel1 = np.asarray([1, 0], dtype=np.int8)
                 # templabel2 = np.asarray([0, 1], dtype=np.int8)
                 datalist1[1] += [tempimg[0]]
                 datalist2[1] += [tempimg[1]]
+                # datalist2[1] += [tempimg[2]]
+                # datalist2[1] += [tempimg[3]]
             else:
                 # templabel1 = np.asarray([1, 0], dtype=np.int8)
                 # templabel2 = np.asarray([0, 1], dtype=np.int8)
                 datalist1[0] += [tempimg[0]]
                 datalist2[0] += [tempimg[1]]
+                # datalist2[0] += [tempimg[2]]
+                # datalist2[0] += [tempimg[3]]
 
     binarylabellist = []
     binarylabellist.append(
-        np.array([[1, 0] for _ in range(numtrain)] * len(dataname) + [[0, 1] for _ in range(numtrain)] * len(dataname)))
+        np.array([[1, 0] for _ in range(numtrain)] * len(dataname) + [[0, 1] for _ in range(numtrain)] * 1 * len(dataname)))
     binarylabellist.append(
-        np.array([[1, 0] for _ in range(numval)] * len(dataname) + [[0, 1] for _ in range(numval)] * len(dataname)))
+        np.array([[1, 0] for _ in range(numval)] * len(dataname) + [[0, 1] for _ in range(numval)] * 1 * len(dataname)))
     binarylabellist.append(
-        np.array([[1, 0] for _ in range(numtest)] * len(dataname) + [[0, 1] for _ in range(numtest)] * len(dataname)))
+        np.array([[1, 0] for _ in range(numtest)] * len(dataname) + [[0, 1] for _ in range(numtest)] * 1 * len(dataname)))
 
     class DataSets(object):
         pass
@@ -165,7 +175,7 @@ def loadsampledata(dataname, sampledatanum=1000, dir_='D:\CTgit\Image', labeldic
     datanum = len(templist1)
     print("Dataset Num of sample : {}".format(sampledatanum))
     for i in range(sampledatanum):
-        tempimg1 = readimage(templist1[datanum - 1 - i])
+        tempimg1 = templist1[datanum - 1 - i]
         datalist1 += [tempimg1]
 
     if labeldice == 1:

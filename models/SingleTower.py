@@ -203,7 +203,8 @@ class STmodel(object):
                 time.time() - start_time, temploss, tempaccuracy * 100))
             if self._dataset.test.getposition == 0:
                 stopflag = False
-
+        print("[Result] loss: {1:.8f}, accuracy: {2:3.3f}".format(
+            time.time() - start_time, loss / counter, accuracy * 100 / counter))
         self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"), global_step=counter)
 
     def loadandsampling(self):
@@ -241,13 +242,13 @@ class STmodel(object):
         self._sample_dir = sample_dir
         self._sample_dataset = loadsampledata(sample_dir, sampledatanum=testnum, labeldice=label_dice)
 
-    def loadandlabelsampling(self, number=100):
+    def loadandlabelsampling(self):
         ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
         self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         start_time = time.time()
         img = self._sample_dataset.getimage
         batch_label = self._sample_dataset.getlabels
-        loss, accuracy, label = self._sess.run([self._loss, self._accuracy, self._network],
+        loss, accuracy, label = self._sess.run([self._loss, self._accuracy, tf.nn.softmax(self._network)],
                                                feed_dict={
                                                    self.inputs: img,
                                                    self.labels: batch_label

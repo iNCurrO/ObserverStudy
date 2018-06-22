@@ -20,6 +20,13 @@ def conv_cond_concat(x, y):
     return concat([x, y * tf.ones([x_shapes[0], x_shapes[1], x_shapes[2], y_shapes[3]])], 3)
 
 
+def GAPool(input_, name='GAP'):
+    with tf.variable_scope(name):
+        xshape = input_.get_shape()[1]
+        yshape = input_.get_shape()[2]
+        return tf.nn.avg_pool(input_, ksize=[1, xshape, yshape, 1], strides=[1, 1, 1, 1], padding='VALID')
+
+
 def act_func(input_, activation):
     if activation == 'lrelu':
         return tf.maximum(input_, 0.2 * input_, name='lrelu')
