@@ -16,13 +16,13 @@ def show_all_variables():
 
 
 def main(_):
-    config = tf.ConfigProto(log_device_placement=True)
+    config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     with tf.Session(config=config) as sess:
         # ckdir='./floor_init_channel16_gabor'
         # ckdir = './floor_combo1_floor4_k3_channe]' \
         # 		  'l16_plusOne_fc128'
-        ckdir = './floor18_noPooling_GAP_channel96'
+        ckdir = './floor33_noPooling_channel16_mk2'
         start_time = time.time()
         srcnn = STmodel(sess, checkpoint_dir=ckdir,
                         sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
@@ -40,10 +40,10 @@ def main(_):
         # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name=['observer1mmtransramp'])
         # show_all_variables()
         # srcnn.loadandsampling()
-        # srcnn.resetdata(dataset_name=['observer1mmtransramp'])
-        # srcnn.loadandsampling()
-        # srcnn.resetdata(dataset_name=['observer1mmtranshann'])
-        # srcnn.loadandsampling()
+        srcnn.resetdata(dataset_name=['observer1mmtransramp'])
+        srcnn.loadandsampling()
+        srcnn.resetdata(dataset_name=['observer1mmtranshann'])
+        srcnn.loadandsampling()
 
 
 # def main(_):

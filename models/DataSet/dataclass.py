@@ -1,6 +1,6 @@
 import numpy
 import scipy.misc
-
+from random import shuffle
 
 def imread(pathes):
     return numpy.array([(scipy.misc.imread(path) / 255) for path in pathes]).astype(numpy.float32)
@@ -32,14 +32,16 @@ class DataSet(object):
                                                    "image {} : label {} ,".format(images1.shape[0], label.shape[0])
         self._num_examples = images1.shape[0]
         self._index_in_epoch = 0
-        self._images = numpy.append(numpy.append(numpy.append(images1, images2), images3), images4)
+        self._images1 = images1
+        self._images2 = numpy.append(numpy.append(images2, images3), images4)
         self._labels = label
         perm = numpy.arange(self._num_examples)
         numpy.random.shuffle(perm)
+        self._images1 = self._images1[perm]
         self._labels = self._labels[perm]
         perm = numpy.arange(self._num_examples * 3)
         numpy.random.shuffle(perm)
-        self._images = self._images[perm]
+        self._images2 = self._images2[perm]
 
     @property
     def getimage(self):
@@ -66,15 +68,19 @@ class DataSet(object):
             self._index_in_epoch = 0
             perm = numpy.arange(self._num_examples)
             numpy.random.shuffle(perm)
+            self._images1 = self._images1[perm]
             self._labels = self._labels[perm]
             perm = numpy.arange(self._num_examples * 3)
             numpy.random.shuffle(perm)
-            self._images = self._images[perm]
+            self._images2 = self._images2[perm]
             tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
-                imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
+                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
+                imread(self._images2[start+self._num_examples:end+self._num_examples])[:, :, :, None], imread(self._images2[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], \
                 self._labels[start:end]
-            return tempimages1, tempimages2, tempimages3, tempimages4, templabels
+            a = [1, 2,3,0]
+            shuffle(a)
+            tempimages = [tempimages1, tempimages2, tempimages3, tempimages4]
+            return tempimages[a[0]], tempimages[a[1]],tempimages[a[2]],tempimages[a[3]], templabels[:, a]
         elif self._index_in_epoch >= self._num_examples:
             end = self._num_examples
             self._index_in_epoch = 0
@@ -85,14 +91,19 @@ class DataSet(object):
             perm = numpy.arange(self._num_examples)
             numpy.random.shuffle(perm)
             self._labels = self._labels[perm]
-            perm = numpy.arange(self._num_examples * 3)
+            perm = numpy.arange(self._num_examples * 4)
             numpy.random.shuffle(perm)
             self._images = self._images[perm]
             return tempimages1, tempimages2, tempimages3, tempimages4, templabels
         else:
             end = self._index_in_epoch
             tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
-                imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
+                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
+                imread(self._images2[start +  self._num_examples:end + self._num_examples])[:, :, :,
+                None], imread(self._images2[start + 2 * self._num_examples:end + 2 * self._num_examples])[:, :, :,
+                       None], \
                 self._labels[start:end]
-            return tempimages1, tempimages2, tempimages3, tempimages4, templabels
+            a = [1, 2, 3, 0]
+            shuffle(a)
+            tempimages = [tempimages1, tempimages2, tempimages3, tempimages4]
+            return tempimages[a[0]], tempimages[a[1]], tempimages[a[2]], tempimages[a[3]], templabels[:, a]
