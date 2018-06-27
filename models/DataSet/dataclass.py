@@ -5,6 +5,12 @@ from random import shuffle
 def imread(pathes):
     return numpy.array([(scipy.misc.imread(path) / 255) for path in pathes]).astype(numpy.float32)
 
+def scrable(a, b, axis=-1):
+    b = numpy.random.random(a.shape)
+    idx = numpy.argsort(b, axis = axis)
+    shuffled_a = a[numpy.arange(a.shape[0])[:, None], idx]
+    shuffled_b = b[numpy.arange(a.shape[0])[:, None], idx]
+    return shuffled_a, shuffled_b
 
 # def readimage(fname):
 # 	# queue = tf.train.string_input_producer(list(fname), shuffle=False, seed=None)
@@ -59,7 +65,7 @@ class DataSet(object):
     def num_example(self):
         return self._num_examples
 
-    def next_batch(self, batch_size, fake_data=False, must_full=False):
+    def next_batch(self, batch_size, fake_data=False, must_full=True):
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch >= self._num_examples and must_full:
@@ -74,36 +80,35 @@ class DataSet(object):
             numpy.random.shuffle(perm)
             self._images2 = self._images2[perm]
             tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
-                imread(self._images2[start+self._num_examples:end+self._num_examples])[:, :, :, None], imread(self._images2[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], \
+                imread(self._images1[start:end])[:, :, :, None], \
+                imread(self._images2[start:end])[:, :, :, None], \
+                imread(self._images2[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
+                imread(self._images2[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], \
                 self._labels[start:end]
-            a = [1, 2,3,0]
-            shuffle(a)
-            tempimages = [tempimages1, tempimages2, tempimages3, tempimages4]
-            return tempimages[a[0]], tempimages[a[1]],tempimages[a[2]],tempimages[a[3]], templabels[:, a]
-        elif self._index_in_epoch >= self._num_examples:
-            end = self._num_examples
-            self._index_in_epoch = 0
-            tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
-                imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
-                self._labels[start:end]
-            perm = numpy.arange(self._num_examples)
-            numpy.random.shuffle(perm)
-            self._labels = self._labels[perm]
-            perm = numpy.arange(self._num_examples * 4)
-            numpy.random.shuffle(perm)
-            self._images = self._images[perm]
-            return tempimages1, tempimages2, tempimages3, tempimages4, templabels
+            tempimages = numpy.asarray([tempimages1, tempimages2, tempimages3, tempimages4])
+            tempimages, templabels = scrable(tempimages, templabels)
+            return tempimages[0], tempimages[1], tempimages[2], tempimages[3], templabels
+        # elif self._index_in_epoch >= self._num_examples:
+        #     end = self._num_examples
+        #     self._index_in_epoch = 0
+        #     tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
+        #         imread(self._images[start:end])[:, :, :, None], imread(self._images[start+self._num_examples:end+self._num_examples])[:, :, :, None], \
+        #         imread(self._images[start+2*self._num_examples:end+2*self._num_examples])[:, :, :, None], imread(self._images[start+3*self._num_examples:end+3*self._num_examples])[:, :, :, None], \
+        #         self._labels[start:end]
+        #     perm = numpy.arange(self._num_examples)
+        #     numpy.random.shuffle(perm)
+        #     self._labels = self._labels[perm]
+        #     perm = numpy.arange(self._num_examples * 4)
+        #     numpy.random.shuffle(perm)
+        #     self._images = self._images[perm]
+        #     return tempimages1, tempimages2, tempimages3, tempimages4, templabels
         else:
             end = self._index_in_epoch
-            tempimages1, tempimages2, tempimages3, tempimages4, templabels = \
-                imread(self._images1[start:end])[:, :, :, None], imread(self._images2[start:end])[:, :, :, None], \
-                imread(self._images2[start +  self._num_examples:end + self._num_examples])[:, :, :,
-                None], imread(self._images2[start + 2 * self._num_examples:end + 2 * self._num_examples])[:, :, :,
-                       None], \
-                self._labels[start:end]
-            a = [1, 2, 3, 0]
-            shuffle(a)
-            tempimages = [tempimages1, tempimages2, tempimages3, tempimages4]
-            return tempimages[a[0]], tempimages[a[1]], tempimages[a[2]], tempimages[a[3]], templabels[:, a]
+            tempimages1 = imread(self._images1[start:end])[:, :, :, None]
+            tempimages2 = imread(self._images2[start:end])[:, :, :, None]
+            tempimages3 = imread(self._images2[start + self._num_examples:end + self._num_examples])[:, :, :, None]
+            tempimages4 = imread(self._images2[start + 2 * self._num_examples:end + 2 * self._num_examples])[:, :, :, None]
+            templabels = self._labels[start:end]
+            tempimages = numpy.asarray([tempimages1, tempimages2, tempimages3, tempimages4])
+            tempimages, templabels = scrable(tempimages, templabels)
+            return tempimages[0], tempimages[1], tempimages[2], tempimages[3], templabels
