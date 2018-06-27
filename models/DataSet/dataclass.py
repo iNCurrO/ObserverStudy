@@ -5,11 +5,11 @@ from random import shuffle
 def imread(pathes):
     return numpy.array([(scipy.misc.imread(path) / 255) for path in pathes]).astype(numpy.float32)
 
-def scrable(a, b, axis=-1):
-    b = numpy.random.random(a.shape)
-    idx = numpy.argsort(b, axis = axis)
-    shuffled_a = a[numpy.arange(a.shape[0])[:, None], idx]
-    shuffled_b = b[numpy.arange(a.shape[0])[:, None], idx]
+def scrable(a, b, axis=0):
+    c = numpy.random.random(a.shape[0:2])
+    idx = numpy.argsort(c, axis=axis)
+    shuffled_a = a[idx, numpy.arange(a.shape[1])[None, :], :, :]
+    shuffled_b = b[numpy.arange(b.shape[0])[:, None], numpy.transpose(idx)]
     return shuffled_a, shuffled_b
 
 # def readimage(fname):
