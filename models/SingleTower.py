@@ -6,7 +6,7 @@ import time
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=65, batch_size=256, sample_num=100,
+            self, sess, img_size=65, batch_size=128, sample_num=100,
             dataset_name=['observer'], checkpoint_dir=None, sample_dir=None
     ):
         self._sess = sess
@@ -59,51 +59,97 @@ class STmodel(object):
         print("Set to data {}".format(dataset_name))
         self._dataset = loaddata(dataset_name, testrate=testrate)
 
-    def network(self, img1, img2, img3, img4, reuse=False):
+    # def network(self, img1, img2, img3, img4, reuse=False):
+    #     with tf.variable_scope('network') as scope:
+    #         if reuse:
+    #             scope.reuse_variables()
+    #         # tempcon1 = tf.concat([img1, img2], axis=1)
+    #         # tempcon2 = tf.concat([img3, img4], axis=1)
+    #         # image = tf.concat([tempcon1, tempcon2], axis=2)
+    #         print(img1.shape)
+    #         image = tf.concat([img1, img2, img3, img4], axis=3)
+    #         basechannel = 128
+    #         h1 = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
+    #         h2 = conv2d(h1, basechannel, name='d_conv2', activation='lrelu', padding='VALID')
+    #         h3 = conv2d(h2, basechannel, name='d_conv3', activation='lrelu', padding='VALID')
+    #         h4 = conv2d(h3, basechannel, name='d_conv4', activation='lrelu', padding='VALID')
+    #         h5 = conv2d(h4, basechannel, name='d_conv5', activation='lrelu', padding='VALID')
+    #         h6 = conv2d(h5, basechannel, name='d_conv6', activation='lrelu', padding='VALID')
+    #         h7 = conv2d(h6, basechannel, name='d_conv7', activation='lrelu', padding='VALID')
+    #         h8 = conv2d(h7, basechannel, name='d_conv8', activation='lrelu', padding='VALID')
+    #         h9 = conv2d(h8, basechannel, name='d_conv9', activation='lrelu', padding='VALID')
+    #         h10 = conv2d(h9, basechannel, name='d_conv10', activation='lrelu', padding='VALID')
+    #         h11 = conv2d(h10, basechannel, name='d_conv11', activation='lrelu', padding='VALID')
+    #         h12 = conv2d(h11, basechannel, name='d_conv12', activation='lrelu', padding='VALID')
+    #         h13 = conv2d(h12, basechannel, name='d_conv13', activation='lrelu', padding='VALID')
+    #         h14 = conv2d(h13, basechannel, name='d_conv14', activation='lrelu', padding='VALID')
+    #         h15 = conv2d(h14, basechannel, name='d_conv15', activation='lrelu', padding='VALID')
+    #         h16 = conv2d(h15, basechannel, name='d_conv16', activation='lrelu', padding='VALID')
+    #         h17 = conv2d(h16, basechannel, name='d_conv17', activation='lrelu', padding='VALID')
+    #         h18 = conv2d(h17, basechannel, name='d_conv18', activation='lrelu', padding='VALID')
+    #         h19 = conv2d(h18, basechannel, name='d_conv19', activation='lrelu', padding='VALID')
+    #         h20 = conv2d(h19, basechannel, name='d_conv20', activation='lrelu', padding='VALID')
+    #         h21 = conv2d(h20, basechannel, name='d_conv21', activation='lrelu', padding='VALID')
+    #         h22 = conv2d(h21, basechannel, name='d_conv22', activation='lrelu', padding='VALID')
+    #         h23 = conv2d(h22, basechannel, name='d_conv23', activation='lrelu', padding='VALID')
+    #         # h24 = conv2d(h23, basechannel, name='d_conv24', activation='lrelu', padding='VALID')
+    #         # h25 = conv2d(h24, basechannel, name='d_conv25', activation='lrelu', padding='VALID')
+    #         # h26 = conv2d(h25, basechannel, name='d_conv26', activation='lrelu', padding='VALID')
+    #         # h27 = conv2d(h26, basechannel, name='d_conv27', activation='lrelu', padding='VALID')
+    #         # h28 = conv2d(h27, basechannel, name='d_conv28', activation='lrelu', padding='VALID')
+    #         # h29 = conv2d(h28, basechannel, name='d_conv29', activation='lrelu', padding='VALID')
+    #         # h30 = conv2d(h29, basechannel, name='d_conv30', activation='lrelu', padding='VALID')
+    #         # h31 = conv2d(h30, basechannel, name='d_conv31', activation='lrelu', padding='VALID')
+    #         # h32 = conv2d(h31, basechannel, name='d_conv32', activation='lrelu', padding='VALID')
+    #         # GAP = GAPool(h17)
+    #         result = fc(h23, 4, activation='linear', name='d_fc')
+    #         return result
+
+    def network(selfself, img1, img2, img3, img4, reuse=False):
+        def bottleneck(input, basechannel=12, name='bottlenect'):
+            with tf.name_scope(name):
+                x = batch_norm(input)
+                x = act_func(x, activation='relu')
+                x = conv2d(x, 4*basechannel, k=1, activation='linear')
+                x = tf.nn.dropout(x, keep_prob=0.5)
+                x = batch_norm(x)
+                x = act_func(x, activation='relu')
+                x = conv2d(x, basechannel, k=3, activation='linear')
+                x = tf.nn.dropout(x)
+                return x
+
+        def transition(input, basechannel=12, name='transition'):
+            with tf.name_scope(name):
+                x = batch_norm(input)
+                x = act_func(x, activation='relu')
+                x = conv2d(x, basechannel, k=1, activation='linear')
+                x = avgpool(x, k=2, s=2)
+                return x
+        def denseblock(input, nb_layers, basechannel= 12, name='denseblock'):
+            with tf.name_scope(name):
+                layerslist = list()
+                layerslist.append(input)
+                x = bottleneck(input)
+                layerslist.append(x)
+                for i in range(nb_layers - 1):
+                    x = concat(layerslist, axis=3)
+                    x = bottleneck(x, name='bottle_N_'+str (i+1))
+                    layerslist.append(x)
+                x = concat(layerslist, axis=3)
+                return x
         with tf.variable_scope('network') as scope:
-            if reuse:
-                scope.reuse_variables()
-            # tempcon1 = tf.concat([img1, img2], axis=1)
-            # tempcon2 = tf.concat([img3, img4], axis=1)
-            # image = tf.concat([tempcon1, tempcon2], axis=2)
-            print(img1.shape)
-            image = tf.concat([img1, img2, img3, img4], axis=3)
-            basechannel = 96
-            h1 = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
-            h2 = conv2d(h1, basechannel, name='d_conv2', activation='lrelu', padding='VALID')
-            h3 = conv2d(h2, basechannel, name='d_conv3', activation='lrelu', padding='VALID')
-            h4 = conv2d(h3, basechannel, name='d_conv4', activation='lrelu', padding='VALID')
-            h5 = conv2d(h4, basechannel, name='d_conv5', activation='lrelu', padding='VALID')
-            h6 = conv2d(h5, basechannel, name='d_conv6', activation='lrelu', padding='VALID')
-            h7 = conv2d(h6, basechannel, name='d_conv7', activation='lrelu', padding='VALID')
-            h8 = conv2d(h7, basechannel, name='d_conv8', activation='lrelu', padding='VALID')
-            h9 = conv2d(h8, basechannel, name='d_conv9', activation='lrelu', padding='VALID')
-            h10 = conv2d(h9, basechannel, name='d_conv10', activation='lrelu', padding='VALID')
-            h11 = conv2d(h10, basechannel, name='d_conv11', activation='lrelu', padding='VALID')
-            h12 = conv2d(h11, basechannel, name='d_conv12', activation='lrelu', padding='VALID')
-            h13 = conv2d(h12, basechannel, name='d_conv13', activation='lrelu', padding='VALID')
-            h14 = conv2d(h13, basechannel, name='d_conv14', activation='lrelu', padding='VALID')
-            h15 = conv2d(h14, basechannel, name='d_conv15', activation='lrelu', padding='VALID')
-            h16 = conv2d(h15, basechannel, name='d_conv16', activation='lrelu', padding='VALID')
-            h17 = conv2d(h16, basechannel, name='d_conv17', activation='lrelu', padding='VALID')
-            # h18 = conv2d(h17, basechannel, name='d_conv18', activation='lrelu', padding='VALID')
-            # h19 = conv2d(h18, basechannel, name='d_conv19', activation='lrelu', padding='VALID')
-            # h20 = conv2d(h19, basechannel, name='d_conv20', activation='lrelu', padding='VALID')
-            # h21 = conv2d(h20, basechannel, name='d_conv21', activation='lrelu', padding='VALID')
-            # h22 = conv2d(h21, basechannel, name='d_conv22', activation='lrelu', padding='VALID')
-            # h23 = conv2d(h22, basechannel, name='d_conv23', activation='lrelu', padding='VALID')
-            # h24 = conv2d(h23, basechannel, name='d_conv24', activation='lrelu', padding='VALID')
-            # h25 = conv2d(h24, basechannel, name='d_conv25', activation='lrelu', padding='VALID')
-            # h26 = conv2d(h25, basechannel, name='d_conv26', activation='lrelu', padding='VALID')
-            # h27 = conv2d(h26, basechannel, name='d_conv27', activation='lrelu', padding='VALID')
-            # h28 = conv2d(h27, basechannel, name='d_conv28', activation='lrelu', padding='VALID')
-            # h29 = conv2d(h28, basechannel, name='d_conv29', activation='lrelu', padding='VALID')
-            # h30 = conv2d(h29, basechannel, name='d_conv30', activation='lrelu', padding='VALID')
-            # h31 = conv2d(h30, basechannel, name='d_conv31', activation='lrelu', padding='VALID')
-            # h32 = conv2d(h31, basechannel, name='d_conv32', activation='lrelu', padding='VALID')
-            GAP = GAPool(h17)
-            result = fc(GAP, 4, activation='linear', name='d_fc')
+            basechannel = 12
+            x = conv2d(input, output_dim=basechannel * 2, k=7, s=2, name='first_conv')
+            x = maxpool(x, k=3, s=2)
+            for i in [6, 12, 32]:
+                x = denseblock(x, nb_layers=i, name='denseblock_'+str(i))
+                x = transition(x, name='trans_'+str(i))
+            x = batch_norm(input)
+            x = act_func(x, activation='relu')
+            x = GAPool(x)
+            result = fc(x, 4)
             return result
+
 
     # def network(self, img1, img2, img3, img4, reuse=False):
     # 	with tf.variable_scope('network') as scope:
@@ -175,8 +221,8 @@ class STmodel(object):
         stopflag = True
         start_time = time.time()
         # if continued == True:
-        ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-        self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
+        # ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+        # self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         for epoch in range(epoch_num):
             while stopflag is True:
                 counter += 1

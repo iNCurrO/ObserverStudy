@@ -103,12 +103,15 @@ def makefilter(k, m):
     return tf.constant_initializer(filt)
 
 
-def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=True, withweight=False,
+def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=False, withweight=False,
            padding='SAME', isprepared=False):
     assert activation in ACT_LIST, 'Unkwon activation function'
     if k2 is 0:
         k2 = k
     with tf.variable_scope(name):
+        if withbatch:
+            input_ = batch_norm(input_)
+
         if isprepared:
             w = tf.get_variable(
                 'w', [k, k2, input_.get_shape()[-1], output_dim],
@@ -122,16 +125,10 @@ def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', 
         b = tf.get_variable('b', [output_dim], initializer=tf.constant_initializer(0.0))
         conv = tf.nn.conv2d(input_, w, strides=[1, s, s, 1], padding=padding) + b
 
-        if withbatch:
-            if withweight:
-                return act_func(batch_norm(conv), activation), w
-            else:
-                return act_func(batch_norm(conv), activation)
+        if withweight:
+            return act_func(conv, activation), w
         else:
-            if withweight:
-                return act_func(conv, activation), w
-            else:
-                return act_func(conv, activation)
+            return act_func(conv, activation)
 
 
 def decon2d_with_upsampling(
