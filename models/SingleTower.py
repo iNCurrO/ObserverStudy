@@ -107,26 +107,27 @@ class STmodel(object):
 
     def network(selfself, img1, img2, img3, img4, reuse=False):
         def bottleneck(input, basechannel=12, name='bottlenect'):
-            with tf.name_scope(name):
-                x = batch_norm(input)
+            with tf.variable_scope(name):
+                x = batch_norm(input, name='firstBN')
                 x = act_func(x, activation='relu')
-                x = conv2d(x, 4*basechannel, k=1, activation='linear')
+                x = conv2d(x, 4*basechannel, k=1, activation='linear', name='firstConv')
                 x = tf.nn.dropout(x, keep_prob=0.5)
-                x = batch_norm(x)
+                x = batch_norm(x, name='secondBN')
                 x = act_func(x, activation='relu')
-                x = conv2d(x, basechannel, k=3, activation='linear')
-                x = tf.nn.dropout(x)
+                x = conv2d(x, basechannel, k=3, activation='linear', name='secondConv')
+                x = tf.nn.dropout(x, keep_prob=0.5)
                 return x
 
         def transition(input, basechannel=12, name='transition'):
-            with tf.name_scope(name):
+            with tf.variable_scope(name):
                 x = batch_norm(input)
                 x = act_func(x, activation='relu')
                 x = conv2d(x, basechannel, k=1, activation='linear')
                 x = avgpool(x, k=2, s=2)
                 return x
+            
         def denseblock(input, nb_layers, basechannel= 12, name='denseblock'):
-            with tf.name_scope(name):
+            with tf.variable_scope(name):
                 layerslist = list()
                 layerslist.append(input)
                 x = bottleneck(input)
@@ -138,13 +139,15 @@ class STmodel(object):
                 x = concat(layerslist, axis=3)
                 return x
         with tf.variable_scope('network') as scope:
+            image = tf.concat([img1, img2, img3, img4], axis=3)
             basechannel = 12
-            x = conv2d(input, output_dim=basechannel * 2, k=7, s=2, name='first_conv')
+            x = conv2d(image, output_dim=basechannel * 2, k=7, s=2, name='first_conv')
             x = maxpool(x, k=3, s=2)
             for i in [6, 12, 32]:
                 x = denseblock(x, nb_layers=i, name='denseblock_'+str(i))
                 x = transition(x, name='trans_'+str(i))
-            x = batch_norm(input)
+            x = denseblock(x, nb_layers=48, name='denseblock_final')
+            x = batch_norm(x)
             x = act_func(x, activation='relu')
             x = GAPool(x)
             result = fc(x, 4)
