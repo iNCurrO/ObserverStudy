@@ -184,7 +184,13 @@ def GAPool(input_, name='GAP'):
         yshape = input_.get_shape()[2]
         return tf.nn.avg_pool(input_, ksize=[1, xshape, yshape, 1], strides=[1, 1, 1, 1], padding='VALID')
 
-
+def GMPool(input_, name='GMP'):
+    with tf.variable_scope(name):
+        xshape = input_.get_shape()[1]
+        yshape = input_.get_shape()[2]
+        return tf.nn.max_pool(input_, ksize=[1, xshape, yshape, 1], strides=[1, 1, 1, 1], padding='VALID')
+    
+    
 def fc(
         input_, output_dim, name='fc', keepprob=0.5, withdropout=False, activation='relu', withbatch=False,
         issampling=False):

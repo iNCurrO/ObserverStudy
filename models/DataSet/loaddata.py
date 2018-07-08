@@ -55,6 +55,10 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
             data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_1mm_trans_hann', '*'))
             mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_hann', 'label.mat'))
             data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+        elif dataset == 'observer1mmtransnorecon':
+            data_dir_temp = glob.glob(os.path.join(dir_, 'Observer_1mm_trans_norecon', '*'))
+            mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_hann', 'label.mat'))
+            data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
         else:
             data_dir_ = glob.glob(os.path.join(dir_, dataset, "*"))
             assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
