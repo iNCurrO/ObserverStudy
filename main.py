@@ -46,20 +46,14 @@ def main(_):
         srcnn.loadandsampling()
 
 
-# def main(_):
-# 	with tf.Session() as sess:
-# 		srcnn = STmodel(sess, checkpoint_dir='./cp', sample_dir=None, dataset_name='observer')
-# 		show_all_variables()
-
-# def main(_):
-# 	with tf.Session() as sess:
-# 		dcgan = DCGAN(sess, checkpoint_dir='./checkpoint', sample_dir=None)
-#
-# 		show_all_variables()
-# 		# dcgan.train(finetune=True)
-# 		dcgan.loadandsampling()
-# 		dcgan.juststore()
-
-
 if __name__ == '__main__':
-    tf.app.run()
+    for basechannel in [16, 32, 64, 128]:
+        FLAGS = tf.app.flags.FLAGS
+        tf.app.flags.DEFINE_integer('basechannel', basechannel, "basechannelNum")
+        tf.app.flags.DEFINE_integer('depth', 24, 'repeat layer nums')
+        tf.app.run()
+    for depth in range(20, 32, 2):
+        FLAGS = tf.app.flags.FLAGS
+        tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
+        tf.app.flags.DEFINE_integer('depth', depth, 'repeat layer nums')
+        tf.app.run()

@@ -3,7 +3,6 @@ import numpy as np
 
 ACT_LIST = ['lrelu', 'relu', 'linear', 'sigmoid', 'softmax', 'tanh']
 
-
 def concat(tensors, axis, *args, **kwargs):
     return tf.concat(tensors, axis, *args, **kwargs)
 
