@@ -21,31 +21,14 @@ def main(_):
     with tf.Session(config=config) as sess:
         # ckdir = './denseNet_bc40_264_norecon'
         # ckdir = './floor33_noPooling_channel16_mk2'
-        ckdir = './floor' + str(FLAGS.depth) + '_noPooling_channel' + str(FLAGS.basechannel) + '_mk2_norecon'
-        print(ckdir)
+        loaddir = './floor' + str(FLAGS.depth) + '_noPooling_channel' + str(FLAGS.basechannel) + '_mk2_norecon'
+        ckdir = './floor' + str(FLAGS.depth) + '_noPooling_channel' + str(FLAGS.basechannel) + '_scanning'
         start_time = time.time()
-        srcnn = STmodel(sess, checkpoint_dir=ckdir,
-                        sample_dir=None, dataset_name=['observer1mmtransnoreconcentre'])
-                        # sample_dir=None, dataset_name=['observer1mmtransnorecon'])
-                        # sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
+        srcnn = STmodel(sess, checkpoint_dir=ckdir, load_dir=loaddir,
+                        sample_dir=None, dataset_name=['observer1mmtransnorecon'])
         show_all_variables()
         print('!!{}sec to ready'.format(time.time()-start_time))
         srcnn.train()
-        # srcnn.loadandsampling()
-        # srcnn.resetdata(dataset_name=['observer2mmtransramp'])
-        # srcnn.loadandsampling()
-        # srcnn.resetdata(dataset_name=['observer2mmtranshann'])
-        # srcnn.loadandsampling()
-        # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongi')
-        # show_all_variables()
-        # srcnn.loadandsampling()
-        # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name=['observer1mmtransramp'])
-        # show_all_variables()
-        # srcnn.loadandsampling()
-        srcnn.resetdata(dataset_name=['observer1mmtransramp'])
-        srcnn.loadandsampling()
-        srcnn.resetdata(dataset_name=['observer1mmtranshann'])
-        srcnn.loadandsampling()
 
 
 if __name__ == '__main__':

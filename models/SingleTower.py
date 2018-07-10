@@ -2,12 +2,14 @@ from .DataSet.loaddata import *
 from .DataSet.savedata import *
 from .NeuralNet.convolution import *
 import time
+import numpy as np
+import tensorflow as tf
 
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=65, batch_size=128, sample_num=100,
-            dataset_name=['observer'], checkpoint_dir=None, sample_dir=None
+            self, sess, img_size=129, batch_size=128, sample_num=100,
+            dataset_name=['observer'], checkpoint_dir=None, sample_dir=None, load_dir=None
     ):
         self._FLAGS = tf.app.flags.FLAGS
         self._sess = sess
@@ -19,6 +21,7 @@ class STmodel(object):
         self._dataset_name = dataset_name
         self._checkpoint_dir = checkpoint_dir
         self._sample_dir = sample_dir
+        self._scanning_dir = load_dir
         self._c_dim = 1
         self._dataset = loaddata(dataset_name, valrate=0.01, testrate=0.01)
         # self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
@@ -61,6 +64,13 @@ class STmodel(object):
     def resetdata(self, dataset_name, testrate=0.025):
         print("Set to data {}".format(dataset_name))
         self._dataset = loaddata(dataset_name, testrate=testrate)
+        
+    def loadweights(self, weight_file):
+        weights = np.load(weight_file)
+        keys = sorted(weights.keys())
+        parameters = tf.trainable_variables()
+        for i, k in enumerate(keys):
+            self._sess.run(parameters[i].assign(weights[k]))
 
     def network(self, img1, img2, img3, img4, reuse=False, repeatnum=23, basechannel=64):
         with tf.variable_scope('network') as scope:
@@ -70,7 +80,11 @@ class STmodel(object):
             x = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
             for i in range(2, repeatnum):
                 x = conv2d(x, basechannel, name='d_conv'+str(i), activation='lrelu', padding='VALID')
-            result = fc(x, 4, activation='linear', name='d_fc')
+            if self._scanning_dir is not None:
+                x = GMPool(x, name='scanningMaxPool')
+                result = fc(x, 4, activation='linear', name='d_fc_scanning')
+            else:
+                result = fc(x, 4, activation='linear', name='d_fc')
             return result
 
     # def network(self, img1, img2, img3, img4, reuse=False):
@@ -237,9 +251,11 @@ class STmodel(object):
         counter = 1
         stopflag = True
         start_time = time.time()
-        # if continued == True:
-        # ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-        # self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
+        # if self._scanning_dir is not None:
+            # collections = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='network')
+            # print(collections)
+            # ckpt = tf.train.get_checkpoint_state(self._scanning_dir)
+            # self.saver.restore(self._sess, os.path.join(self._scanning_dir, os.path.basename(ckpt.model_checkpoint_path)))
         for epoch in range(epoch_num):
             while stopflag is True:
                 counter += 1
