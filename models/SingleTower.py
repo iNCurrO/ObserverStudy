@@ -66,11 +66,12 @@ class STmodel(object):
         self._dataset = loaddata(dataset_name, testrate=testrate)
         
     def loadweights(self, weight_file):
-        weights = np.load(weight_file)
-        keys = sorted(weights.keys())
+        weights = np.load(weight_file).item()
         parameters = tf.trainable_variables()
-        for i, k in enumerate(keys):
-            self._sess.run(parameters[i].assign(weights[k]))
+        for i, k in enumerate(weights.keys()):
+            print('[{}th] {} is assigned with value {}'.format(i, parameters[i], weights[k]))
+            if i<88:
+                self._sess.run(parameters[i].assign(weights[k]))
 
     def network(self, img1, img2, img3, img4, reuse=False, repeatnum=23, basechannel=64):
         with tf.variable_scope('network') as scope:
@@ -251,7 +252,8 @@ class STmodel(object):
         counter = 1
         stopflag = True
         start_time = time.time()
-        # if self._scanning_dir is not None:
+        if self._scanning_dir is not None:
+            self.loadweights('fuck.npy')
             # collections = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='network')
             # print(collections)
             # ckpt = tf.train.get_checkpoint_state(self._scanning_dir)
