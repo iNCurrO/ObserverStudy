@@ -6,7 +6,7 @@ import time
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=65, batch_size=128, sample_num=100,
+            self, sess, img_size=129, batch_size=64, sample_num=100,
             dataset_name=['observer'], checkpoint_dir=None, sample_dir=None
     ):
         self._FLAGS = tf.app.flags.FLAGS
@@ -327,6 +327,13 @@ class STmodel(object):
         counter = 0
         loss = 0
         accuracy = 0
+        weights = {}
+        tvars = tf.trainable_variables()
+        tvars_vals = self._sess.run(tvars)
+        for var, val in zip(tvars, tvars_vals):
+            weights[var.name] = val
+        name = "fuck2.npy"
+        np.save(name, weights)
         start_time = time.time()
         stopflag = True
         while stopflag is True:
