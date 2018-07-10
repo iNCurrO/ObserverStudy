@@ -102,7 +102,7 @@ def makefilter(k, m):
     return tf.constant_initializer(filt)
 
 
-def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=False, withweight=False,
+def conv2d(input_, output_dim, k=3, s=1, k2=0, name='con2d', activation='relu', withbatch=True, withweight=False,
            padding='SAME', isprepared=False):
     assert activation in ACT_LIST, 'Unkwon activation function'
     if k2 is 0:

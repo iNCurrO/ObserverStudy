@@ -19,13 +19,15 @@ def main(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     with tf.Session(config=config) as sess:
-        # ckdir='./floor_init_channel16_gabor'
-        # ckdir = './floor_combo1_floor4_k3_channe]' \
-        # 		  'l16_plusOne_fc128'
-        ckdir = './floor33_noPooling_channel16_mk2'
+        # ckdir = './denseNet_bc40_264_norecon'
+        # ckdir = './floor33_noPooling_channel16_mk2'
+        ckdir = './floor' + str(FLAGS.depth) + '_noPooling_channel' + str(FLAGS.basechannel) + '_mk2_norecon'
+        print(ckdir)
         start_time = time.time()
         srcnn = STmodel(sess, checkpoint_dir=ckdir,
-                        sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
+                        sample_dir=None, dataset_name=['observer1mmtransnoreconcentre'])
+                        # sample_dir=None, dataset_name=['observer1mmtransnorecon'])
+                        # sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
         show_all_variables()
         print('!!{}sec to ready'.format(time.time()-start_time))
         srcnn.train()
@@ -47,13 +49,17 @@ def main(_):
 
 
 if __name__ == '__main__':
-    for basechannel in [16, 32, 64, 128]:
-        FLAGS = tf.app.flags.FLAGS
-        tf.app.flags.DEFINE_integer('basechannel', basechannel, "basechannelNum")
-        tf.app.flags.DEFINE_integer('depth', 24, 'repeat layer nums')
-        tf.app.run()
-    for depth in range(20, 32, 2):
-        FLAGS = tf.app.flags.FLAGS
-        tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
-        tf.app.flags.DEFINE_integer('depth', depth, 'repeat layer nums')
-        tf.app.run()
+    # for basechannel in [16, 32, 64, 128]:
+    #     FLAGS = tf.app.flags.FLAGS
+    #     tf.app.flags.DEFINE_integer('basechannel', basechannel, "basechannelNum")
+    #     tf.app.flags.DEFINE_integer('depth', 24, 'repeat layer nums')
+    #     tf.app.run()
+    # for depth in range(20, 32, 2):
+    #     FLAGS = tf.app.flags.FLAGS
+    #     tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
+    #     tf.app.flags.DEFINE_integer('depth', depth, 'repeat layer nums')
+    #     tf.app.run()
+    FLAGS = tf.app.flags.FLAGS
+    tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
+    tf.app.flags.DEFINE_integer('depth', 23, 'repeat layer nums')
+    tf.app.run()

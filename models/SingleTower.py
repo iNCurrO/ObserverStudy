@@ -67,7 +67,7 @@ class STmodel(object):
             if reuse:
                 scope.reuse_variables()
             image = tf.concat([img1, img2, img3, img4], axis=3)
-            x = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID', withbatch=True)
+            x = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
             for i in range(2, repeatnum):
                 x = conv2d(x, basechannel, name='d_conv'+str(i), activation='lrelu', padding='VALID')
             result = fc(x, 4, activation='linear', name='d_fc')
@@ -230,7 +230,7 @@ class STmodel(object):
     #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
     #         return h6
 
-    def train(self, epoch_num=50, lr=0.1, beta1=0.5):
+    def train(self, epoch_num=50, lr=1e-3, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
