@@ -8,7 +8,7 @@ import tensorflow as tf
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=129, batch_size=128, sample_num=100,
+            self, sess, img_size=129, batch_size=64, sample_num=100,
             dataset_name=['observer'], checkpoint_dir=None, sample_dir=None, load_dir=None
     ):
         self._FLAGS = tf.app.flags.FLAGS
@@ -245,7 +245,7 @@ class STmodel(object):
     #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
     #         return h6
 
-    def train(self, epoch_num=50, lr=1e-3, beta1=0.5):
+    def train(self, epoch_num=5, lr=1e-3, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
