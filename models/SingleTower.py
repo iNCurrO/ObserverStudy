@@ -6,7 +6,7 @@ import time
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=129, batch_size=64, sample_num=100,
+            self, sess, img_size=65, batch_size=128, sample_num=100,
             dataset_name=['observer'], checkpoint_dir=None, sample_dir=None
     ):
         self._FLAGS = tf.app.flags.FLAGS
@@ -230,7 +230,7 @@ class STmodel(object):
     #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
     #         return h6
 
-    def train(self, epoch_num=50, lr=1e-3, beta1=0.5):
+    def train(self, epoch_num=10, lr=1e-3, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
@@ -321,19 +321,20 @@ class STmodel(object):
 
         self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"), global_step=counter)
 
-    def loadandsampling(self):
+    def loadandsampling(self, withsave=False):
         ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
         self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         counter = 0
         loss = 0
         accuracy = 0
-        weights = {}
-        tvars = tf.trainable_variables()
-        tvars_vals = self._sess.run(tvars)
-        for var, val in zip(tvars, tvars_vals):
-            weights[var.name] = val
-        name = "fuck2.npy"
-        np.save(name, weights)
+        if withsave:
+            weights = {}
+            tvars = tf.trainable_variables()
+            tvars_vals = self._sess.run(tvars)
+            for var, val in zip(tvars, tvars_vals):
+                weights[var.name] = val
+            name = "{}.npy".format(self._checkpoint_dir)
+            np.save(name, weights)
         start_time = time.time()
         stopflag = True
         while stopflag is True:
@@ -356,46 +357,3 @@ class STmodel(object):
                 stopflag = False
         print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
             time.time() - start_time, loss / counter, accuracy * 100 / counter))
-
-        def Newnetwork(self, img1, img2, img3, img4, reuse=False):
-            def double(img1, img2, name='0'):
-                with tf.variable_scope(name):
-                    image = tf.concat([img1, img2], axis=3)
-                    basechannel = 32
-                    h0 = conv2d(image, basechannel, name='d_conv0', activation='lrelu', withbatch=True)
-                    h0_pool = maxpool(h0, k=5, s=2, name='d_conv0_maxpool')
-
-                    h1 = conv2d(h0_pool, basechannel * 2, name='d_conv1', activation='lrelu', withbatch=True)
-                    h1_pool = maxpool(h1, k=5, s=2, name='d_conv1_maxpool')
-
-                    h2 = conv2d(h1_pool, basechannel * 4, name='d_conv2', activation='lrelu', withbatch=True)
-                    h2_pool = maxpool(h2, k=5, s=2, name='d_conv2_maxpool')
-
-                    h3 = fc(h2_pool, basechannel, name='d_fc')
-                    return h3
-
-            def single(img1):
-                basechannel = 32
-                h0 = conv2d(img1, basechannel, name='s_conv0', activation='lrelu', withbatch=True)
-                h0_pool = maxpool(h0, k=5, s=2, name='s_conv0_maxpool')
-
-                h1 = conv2d(h0_pool, basechannel * 2, name='s_conv1', activation='lrelu', withbatch=True)
-                h1_pool = maxpool(h1, k=5, s=2, name='s_conv1_maxpool')
-
-                h2 = conv2d(h1_pool, basechannel * 4, name='s_conv2', activation='lrelu', withbatch=True)
-                h2_pool = maxpool(h2, k=5, s=2, name='s_conv2_maxpool')
-
-                h3 = fc(h2_pool, basechannel, name='s_fc')
-                return h3
-
-            a = single(img1)
-            print(a.shape)
-            a = tf.concat([a, double(img1, img2, name='1')], axis=1)
-            a = tf.concat([a, double(img1, img3, name='2')], axis=1)
-            a = tf.concat([a, double(img1, img4, name='3')], axis=1)
-            a = tf.concat([a, double(img2, img3, name='4')], axis=1)
-            a = tf.concat([a, double(img2, img4, name='5')], axis=1)
-            a = tf.concat([a, double(img3, img4, name='6')], axis=1)
-            h4 = fc(a, 1024, name='fc1')
-            h5 = fc(h4, 1, name='fc2', activation='linear')
-            return h5
