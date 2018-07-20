@@ -18,7 +18,7 @@ def main(_):
     config = tf.ConfigProto(log_device_placement=True)
     config.gpu_options.allow_growth = True
     with tf.Session(config=config) as sess:
-        ckdir = './FORONE_floor24_noPooling_channel16'
+        ckdir = './FORONE_floor' + str(FLAGS.depth) + '_noPooling_channel' + str(FLAGS.basechannel)
         srcnn = STmodel(sess, checkpoint_dir=ckdir,
                         dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
         show_all_variables()
@@ -40,22 +40,22 @@ def main(_):
         # 		srcnn.resetdata(dataset_name=['observer1mmtranshann'])
         # 		srcnn.loadandsampling()
 
-        srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=1)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=2)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=3)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=4)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=1)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=2)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=3)
-        srcnn.loadandlabelsampling()
-        srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=4)
-        srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=1)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=2)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=3)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtransramp'], label_dice=4)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=1)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=2)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=3)
+        # srcnn.loadandlabelsampling()
+        # srcnn.resetsampledata(sample_dir=['observer1mmtranshann'], label_dice=4)
+        # srcnn.loadandlabelsampling()
         # srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=1)
         # srcnn.loadandlabelsampling()
         # srcnn.resetsampledata(sample_dir=['observer2mmtransramp'], label_dice=2)
@@ -91,4 +91,7 @@ def main(_):
 
 
 if __name__ == '__main__':
+    FLAGS = tf.app.flags.FLAGS
+    tf.app.flags.DEFINE_integer('basechannel', 16, "basechannel Number")
+    tf.app.flags.DEFINE_integer('depth', 24, 'repeat layer nums')
     tf.app.run()

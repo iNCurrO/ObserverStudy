@@ -12,7 +12,7 @@ class STmodel(object):
     ):
         self._sess = sess
         self._img_size = img_size
-
+        self._FLAGS = tf.app.flags.FLAGS
         self._sample_num = sample_num
         self._batch_size = batch_size
 
@@ -32,7 +32,7 @@ class STmodel(object):
         self.labels = tf.placeholder(
             tf.float16, [None, 2]
         )
-        self._network = self.OneImageNetwork(self.inputs)
+        self._network = self.OneImageNetwork(self.inputs, self._FLAGS.depth, self._FLAGS.basechannel)
         t_vars = tf.trainable_variables()
 
         self._loss = tf.reduce_mean(
@@ -78,47 +78,17 @@ class STmodel(object):
     #
     #         return h6
 
-    def OneImageNetwork(self, image, reuse=False):
+    def OneImageNetwork(self, image, repeatnum, basechannel, reuse=False):
         with tf.variable_scope('network') as scope:
             if reuse:
                 scope.reuse_variables()
-            basechannel = 16
-            h1 = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
-            h2 = conv2d(h1, basechannel, name='d_conv2', activation='lrelu', padding='VALID')
-            h3 = conv2d(h2, basechannel, name='d_conv3', activation='lrelu', padding='VALID')
-            h4 = conv2d(h3, basechannel, name='d_conv4', activation='lrelu', padding='VALID')
-            h5 = conv2d(h4, basechannel, name='d_conv5', activation='lrelu', padding='VALID')
-            h6 = conv2d(h5, basechannel, name='d_conv6', activation='lrelu', padding='VALID')
-            h7 = conv2d(h6, basechannel, name='d_conv7', activation='lrelu', padding='VALID')
-            h8 = conv2d(h7, basechannel, name='d_conv8', activation='lrelu', padding='VALID')
-            h9 = conv2d(h8, basechannel, name='d_conv9', activation='lrelu', padding='VALID')
-            h10 = conv2d(h9, basechannel, name='d_conv10', activation='lrelu', padding='VALID')
-            h11 = conv2d(h10, basechannel, name='d_conv11', activation='lrelu', padding='VALID')
-            h12 = conv2d(h11, basechannel, name='d_conv12', activation='lrelu', padding='VALID')
-            h13 = conv2d(h12, basechannel, name='d_conv13', activation='lrelu', padding='VALID')
-            h14 = conv2d(h13, basechannel, name='d_conv14', activation='lrelu', padding='VALID')
-            h15 = conv2d(h14, basechannel, name='d_conv15', activation='lrelu', padding='VALID')
-            h16 = conv2d(h15, basechannel, name='d_conv16', activation='lrelu', padding='VALID')
-            h17 = conv2d(h16, basechannel, name='d_conv17', activation='lrelu', padding='VALID')
-            h18 = conv2d(h17, basechannel, name='d_conv18', activation='lrelu', padding='VALID')
-            h19 = conv2d(h18, basechannel, name='d_conv19', activation='lrelu', padding='VALID')
-            h20 = conv2d(h19, basechannel, name='d_conv20', activation='lrelu', padding='VALID')
-            h21 = conv2d(h20, basechannel, name='d_conv21', activation='lrelu', padding='VALID')
-            h22 = conv2d(h21, basechannel, name='d_conv22', activation='lrelu', padding='VALID')
-            h23 = conv2d(h22, basechannel, name='d_conv23', activation='lrelu', padding='VALID')
-            # h24 = conv2d(h23, basechannel, name='d_conv24', activation='lrelu', padding='VALID')
-            # h25 = conv2d(h24, basechannel, name='d_conv25', activation='lrelu', padding='VALID')
-            # h26 = conv2d(h25, basechannel, name='d_conv26', activation='lrelu', padding='VALID')
-            # h27 = conv2d(h26, basechannel, name='d_conv27', activation='lrelu', padding='VALID')
-            # h28 = conv2d(h27, basechannel, name='d_conv28', activation='lrelu', padding='VALID')
-            # h29 = conv2d(h28, basechannel, name='d_conv29', activation='lrelu', padding='VALID')
-            # h30 = conv2d(h29, basechannel, name='d_conv30', activation='lrelu', padding='VALID')
-            # h31 = conv2d(h30, basechannel, name='d_conv31', activation='lrelu', padding='VALID')
-            # h32 = conv2d(h31, basechannel, name='d_conv32', activation='lrelu', padding='VALID')
-            h33 = fc(h23, 2, activation='linear', name='d_fc')
-            return h33
+            x = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
+            for i in range(2, repeatnum):
+                x = conv2d(x, basechannel, name='d_conv'+str(i), activation='lrelu', padding='VALID')
+            result = fc(x, 2, activation='linear', name='d_fc')
+            return result
 
-    def train(self, epoch_num=50, lr=1e-5, beta1=0.9):
+    def train(self, epoch_num=10, lr=1e-5, beta1=0.9):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
