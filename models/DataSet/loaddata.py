@@ -56,9 +56,10 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
             mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_hann', 'label.mat'))
             data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
         else:
-            data_dir_ = glob.glob(os.path.join(dir_, dataset, "*"))
-            assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
-        label = np.concatenate([label, mat_file['label']], axis=1)
+            data_dir_temp = glob.glob(os.path.join(dir_, dataset, "*"))
+            assert data_dir_ is not [], 'There are no such data name {0}'.format(dataname)
+            data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+        # label = np.concatenate([label, mat_file['label']], axis=1)
         data_dir_ = data_dir_ + data_dir_temp
     numlabel = 2
     datalist1 = [[], [], []]
@@ -67,9 +68,10 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
     templist2 = []
     templist3 = []
     templist4 = []
+    kindsnum = int(len(data_dir_)/len(dataname))
     for i in range(len(dataname)):  # 4
-        templist1 = templist1 + glob.glob(os.path.join(data_dir_[0 + 4 * i], '*'))  # 80000
-        templist2 = templist2 + glob.glob(os.path.join(data_dir_[1 + 4 * i], '*'))
+        templist1 = templist1 + glob.glob(os.path.join(data_dir_[0 + kindsnum * i], '*'))  # 80000
+        templist2 = templist2 + glob.glob(os.path.join(data_dir_[1 + kindsnum * i], '*'))
         # templist3 = templist3 + glob.glob(os.path.join(data_dir_[1 + 4 * i], '*'))
         # templist4 = templist4 + glob.glob(os.path.join(data_dir_[1 + 4 * i], '*'))
     datanum = int(len(templist1) / len(dataname))  # 20000
@@ -163,9 +165,10 @@ def loadsampledata(dataname, sampledatanum=1000, dir_='D:\CTgit\Image', labeldic
             mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_hann', 'label.mat'))
             data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
         else:
-            data_dir_ = glob.glob(os.path.join(dir_, dataset, "*"))
-            assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
-        label = np.concatenate([label, mat_file['label']], axis=1)
+            data_dir_temp = glob.glob(os.path.join(dir_, dataset, "*"))
+            assert data_dir_ is not [], 'There are no such data name {0}'.format(dataname)
+            data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
+        # label = np.concatenate([label, mat_file['label']], axis=1)
         data_dir_ = data_dir_ + data_dir_temp
     datalist1 = []
     # binarylabellist = [np.array([], dtype=np.int8).reshape(0, numlabel) for _ in range(3)]

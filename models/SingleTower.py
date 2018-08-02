@@ -7,7 +7,7 @@ from scipy import io
 
 class STmodel(object):
     def __init__(
-            self, sess, img_size=65, batch_size=256, sample_num=100,
+            self, sess, img_size=65, batch_size=64, sample_num=100,
             dataset_name=[], checkpoint_dir=None, sample_dir=[], label_dice=1
     ):
         self._sess = sess
@@ -24,7 +24,7 @@ class STmodel(object):
             self._sample_dataset = loadsampledata(sample_dir, labeldice=label_dice)
         self._c_dim = 1
         if len(dataset_name) != 0:
-            self._dataset = loaddata(dataset_name, valrate=0.01, testrate=0.01)
+            self._dataset = loaddata(dataset_name, valrate=0.05, testrate=0.05)
         # self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
         self.inputs = tf.placeholder(
             tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -88,7 +88,7 @@ class STmodel(object):
             result = fc(x, 2, activation='linear', name='d_fc')
             return result
 
-    def train(self, epoch_num=10, lr=1e-5, beta1=0.9):
+    def train(self, epoch_num=20, lr=1e-6, beta1=0.9):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
@@ -210,19 +210,26 @@ class STmodel(object):
         print("Set to data {} (dice : {})".format(sample_dir[0], label_dice))
         self._labeldice = label_dice
         self._sample_dir = sample_dir
-        self._sample_dataset = loadsampledata(sample_dir, sampledatanum=testnum, labeldice=label_dice)
+        if label_dice is 2:
+            self._sample_dataset = loadsampledata(sample_dir, sampledatanum=testnum*3, labeldice=label_dice)
+        else:
+            self._sample_dataset = loadsampledata(sample_dir, sampledatanum=testnum, labeldice=label_dice)
 
     def loadandlabelsampling(self):
         ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
         self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         start_time = time.time()
-        img = self._sample_dataset.getimage
-        batch_label = self._sample_dataset.getlabels
-        loss, accuracy, label = self._sess.run([self._loss, self._accuracy, tf.nn.softmax(self._network)],
-                                               feed_dict={
-                                                   self.inputs: img,
-                                                   self.labels: batch_label
-                                               })
-        print("[Sampling Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
-            time.time() - start_time, loss, accuracy * 100))
-        io.savemat(self._sample_dir[0] + str(self._labeldice), {'label': label})
+        if self._labeldice is 2:
+            temp_num = 300
+        else:
+            temp_num = 100
+        for i in range(10):
+            img, batch_label = self._sample_dataset.next_batch(temp_num)
+            loss, accuracy, label = self._sess.run([self._loss, self._accuracy, tf.nn.softmax(self._network)],
+                                                   feed_dict={
+                                                       self.inputs: img,
+                                                       self.labels: batch_label
+                                                   })
+            print("[Sampling Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
+                time.time() - start_time, loss, accuracy * 100))
+            io.savemat(self._sample_dir[0] + str(self._labeldice) + str(i), {'label': label})
