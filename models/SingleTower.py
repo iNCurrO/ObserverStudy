@@ -20,7 +20,7 @@ class STmodel(object):
         self._checkpoint_dir = checkpoint_dir
         self._sample_dir = sample_dir
         self._c_dim = 1
-        self._dataset = loaddata(dataset_name, valrate=0.01, testrate=0.01)
+        self._dataset = loaddata(dataset_name, valrate=0.05, testrate=0.05)
         # self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
         self.inputs1 = tf.placeholder(
             tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -230,7 +230,7 @@ class STmodel(object):
     #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
     #         return h6
 
-    def train(self, epoch_num=10, lr=1e-3, beta1=0.5):
+    def train(self, epoch_num=50, lr=1e-4, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 

@@ -64,11 +64,12 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
             mat_file = io.loadmat(os.path.join(dir_, 'Observer_1mm_trans_hann', 'label.mat'))
             data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
         else:
-            data_dir_ = glob.glob(os.path.join(dir_, dataset, "*"))
-            assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
+            data_dir_temp = glob.glob(os.path.join(dir_, dataset, "*"))
+            # assert data_dir_ > 0, 'There are no such data name {0}'.format(dataname)
+            data_dir_temp = [d for d in data_dir_temp if os.path.isdir(d)]
         # label = np.concatenate([label, mat_file['label']], axis=1)
         data_dir_ = data_dir_ + data_dir_temp
-    numlabel = 4
+    numlabel = 2
     datalist1 = [[], [], []]
     datalist2 = [[], [], []]
     datalist3 = [[], [], []]
@@ -79,10 +80,8 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
     templist3 = []
     templist4 = []
     for i in range(len(dataname)):
-        templist1 = templist1 + glob.glob(os.path.join(data_dir_[0+4*i], '*'))
-        templist2 = templist2 + glob.glob(os.path.join(data_dir_[1+4*i], '*'))
-        templist3 = templist3 + glob.glob(os.path.join(data_dir_[2+4*i], '*'))
-        templist4 = templist4 + glob.glob(os.path.join(data_dir_[3+4*i], '*'))
+        templist1 = templist1 + glob.glob(os.path.join(data_dir_[0+2*i], '*'))
+        templist2 = templist2 + glob.glob(os.path.join(data_dir_[1+2*i], '*'))
     datanum = int(len(templist1) / len(dataname))
     numval = int(np.floor(valrate * datanum))
     numtest = int(np.floor(testrate * datanum))
@@ -98,45 +97,36 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
             # tempimg3 = readimage(templist3[i + datanum*j])
             # tempimg4 = readimage(templist4[i + datanum*j])
             # tempimg = [tempimg1, tempimg2, tempimg3, tempimg4]
-            tempimg = [templist1[i + datanum*j], templist2[i + datanum*j], templist3[i + datanum*j], templist4[i + datanum*j]]
+            tempimg = [templist1[i + datanum*j], templist2[i + datanum*j]] #, templist3[i + datanum*j], templist4[i + datanum*j]]
             # templabel = label[:, i + datanum*j]
             if i > numtrain+numval:
                # shuffle(a)
                 templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
                 datalist1[2] += [tempimg[0]]
                 datalist2[2] += [tempimg[1]]
-                datalist3[2] += [tempimg[2]]
-                datalist4[2] += [tempimg[3]]
-                binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel], dtype=np.int8), axis=0)
+                # binarylabellist[2] = np.append(binarylabellist[2], np.asarray([templabel], dtype=np.int8), axis=0)
             elif i > numtrain:
  #               shuffle(a)
                 templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
                 datalist1[1] += [tempimg[0]]
                 datalist2[1] += [tempimg[1]]
-                datalist3[1] += [tempimg[2]]
-                datalist4[1] += [tempimg[3]]
-                binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel], dtype=np.int8), axis=0)
+                # binarylabellist[1] = np.append(binarylabellist[1], np.asarray([templabel], dtype=np.int8), axis=0)
             else:
                # shuffle(a)
                 templabel = np.asarray([1, 0, 0, 0], dtype=np.int8)
                 datalist1[0] += [tempimg[0]]
                 datalist2[0] += [tempimg[1]]
-                datalist3[0] += [tempimg[2]]
-                datalist4[0] += [tempimg[3]]
-                binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel], dtype=np.int8), axis=0)
+                # binarylabellist[0] = np.append(binarylabellist[0], np.asarray([templabel], dtype=np.int8), axis=0)
 
     class DataSets(object):
         pass
 
     datasets = DataSets()
-    datasets.train = DataSet(np.asarray(datalist1[0]), np.asarray(datalist2[0]),
-                             np.asarray(datalist3[0]), np.asarray(datalist4[0]), binarylabellist[0])
+    datasets.train = DataSet(np.asarray(datalist1[0]), np.asarray(datalist2[0]))
     if numval != 0:
-        datasets.val = DataSet(np.asarray(datalist1[1]), np.asarray(datalist2[1]),
-                               np.asarray(datalist3[1]), np.asarray(datalist4[1]), binarylabellist[1])
+        datasets.val = DataSet(np.asarray(datalist1[1]), np.asarray(datalist2[1]))
 
     if numtest != 0:
-        datasets.test = DataSet(np.asarray(datalist1[2]), np.asarray(datalist2[2]),
-                                np.asarray(datalist3[2]), np.asarray(datalist4[2]), binarylabellist[2])
+        datasets.test = DataSet(np.asarray(datalist1[2]), np.asarray(datalist2[2]))
 
     return datasets
