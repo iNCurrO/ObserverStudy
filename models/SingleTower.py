@@ -230,7 +230,7 @@ class STmodel(object):
     #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
     #         return h6
 
-    def train(self, epoch_num=50, lr=1e-4, beta1=0.5):
+    def train(self, epoch_num=20, lr=1e-4, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 

@@ -18,33 +18,35 @@ def show_all_variables():
 def main(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    with tf.Session(config=config) as sess:
-        # ckdir = './denseNet_bc40_264_norecon'
-        # ckdir = './floor33_noPooling_channel16_mk2'
-        ckdir = './floor' + str(FLAGS.depth) + '_ellipse_noPooling_channel' + str(FLAGS.basechannel) + '_mk2'
-        print(ckdir)
-        start_time = time.time()
-        srcnn = STmodel(sess, checkpoint_dir=ckdir,
-                        # sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
-                        sample_dir=None, dataset_name=['Observer_elipse_trans_ramp', 'Observer_elipse_trans_hann'])
-        show_all_variables()
-        print('!!{}sec to ready'.format(time.time()-start_time))
-        srcnn.train()
-        # srcnn.loadandsampling()
-        # srcnn.resetdata(dataset_name=['observer2mmtransramp'])
-        # srcnn.loadandsampling()
-        # srcnn.resetdata(dataset_name=['observer2mmtranshann'])
-        # srcnn.loadandsampling()
-        # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongi')
-        # show_all_variables()
-        # srcnn.loadandsampling()
-        # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name=['Observer_elipse_trans_ramp'])
-        # show_all_variables()
-        # srcnn.loadandsampling()
-        srcnn.resetdata(dataset_name=['Observer_elipse_trans_ramp'])
-        srcnn.loadandsampling()
-        srcnn.resetdata(dataset_name=['Observer_elipse_trans_hann'])
-        srcnn.loadandsampling()
+    for temp in [22, 28, 30]:
+        tf.app.flags.DEFINE_integer('depth', temp, 'repeat layer nums')
+        with tf.Session(config=config) as sess:
+            # ckdir = './denseNet_bc40_264_norecon'
+            # ckdir = './floor33_noPooling_channel16_mk2'
+            ckdir = './floor' + str(FLAGS.depth) + '_ellipse_noPooling_channel' + str(FLAGS.basechannel) + '_mk2'
+            print(ckdir)
+            start_time = time.time()
+            srcnn = STmodel(sess, checkpoint_dir=ckdir,
+                            # sample_dir=None, dataset_name=['observer1mmtranshann', 'observer1mmtransramp'])
+                            sample_dir=None, dataset_name=['Observer_elipse_trans_ramp', 'Observer_elipse_trans_hann'])
+            show_all_variables()
+            print('!!{}sec to ready'.format(time.time()-start_time))
+            srcnn.train()
+            # srcnn.loadandsampling()
+            # srcnn.resetdata(dataset_name=['observer2mmtransramp'])
+            # srcnn.loadandsampling()
+            # srcnn.resetdata(dataset_name=['observer2mmtranshann'])
+            # srcnn.loadandsampling()
+            # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongi')
+            # show_all_variables()
+            # srcnn.loadandsampling()
+            # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name=['Observer_elipse_trans_ramp'])
+            # show_all_variables()
+            # srcnn.loadandsampling()
+            srcnn.resetdata(dataset_name=['Observer_elipse_trans_ramp'])
+            srcnn.loadandsampling()
+            srcnn.resetdata(dataset_name=['Observer_elipse_trans_hann'])
+            srcnn.loadandsampling()
 
 
 if __name__ == '__main__':
@@ -55,7 +57,6 @@ if __name__ == '__main__':
     #     tf.app.run
     FLAGS = tf.app.flags.FLAGS
     tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
-    tf.app.flags.DEFINE_integer('depth', 22, 'repeat layer nums')
     tf.app.run()
 # FLAGS = tf.app.flags.FLAGS
 # tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
