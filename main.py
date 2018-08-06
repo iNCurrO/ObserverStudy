@@ -18,7 +18,9 @@ def show_all_variables():
 def main(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    for temp in [22, 28, 30]:
+    for temp in [30]:
+        if 'depth' in list(tf.app.flags.FLAGS):
+            delattr(tf.app.flags.FLAGS, 'depth')
         tf.app.flags.DEFINE_integer('depth', temp, 'repeat layer nums')
         with tf.Session(config=config) as sess:
             # ckdir = './denseNet_bc40_264_norecon'
