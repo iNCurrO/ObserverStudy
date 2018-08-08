@@ -18,9 +18,10 @@ def show_all_variables():
 def main(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    for temp in [30]:
+    for temp in [22, 24, 26, 28, 30]:
         if 'depth' in list(tf.app.flags.FLAGS):
             delattr(tf.app.flags.FLAGS, 'depth')
+            tf.reset_default_graph()
         tf.app.flags.DEFINE_integer('depth', temp, 'repeat layer nums')
         with tf.Session(config=config) as sess:
             # ckdir = './denseNet_bc40_264_norecon'
@@ -58,7 +59,7 @@ if __name__ == '__main__':
     #     tf.app.flags.DEFINE_integer('depth', 24, 'repeat layer nums')
     #     tf.app.run
     FLAGS = tf.app.flags.FLAGS
-    tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
+    tf.app.flags.DEFINE_integer('basechannel', 128, "basechannelNum")
     tf.app.run()
 # FLAGS = tf.app.flags.FLAGS
 # tf.app.flags.DEFINE_integer('basechannel', 64, "basechannelNum")
