@@ -28,19 +28,26 @@ class STmodel(object):
         self.inputs2 = tf.placeholder(
             tf.float32, [None, self._img_size, self._img_size, self._c_dim]
         )
-        self.inputs3 = tf.placeholder(
-            tf.float32, [None, self._img_size, self._img_size, self._c_dim]
-        )
-        self.inputs4 = tf.placeholder(
-            tf.float32, [None, self._img_size, self._img_size, self._c_dim]
-        )
-        self.labels = tf.placeholder(
-            tf.float16, [None, 4]
-        )
+        if self._FLAGS.AFC is not 2:
+            self.inputs3 = tf.placeholder(
+                tf.float32, [None, self._img_size, self._img_size, self._c_dim]
+            )
+            self.inputs4 = tf.placeholder(
+                tf.float32, [None, self._img_size, self._img_size, self._c_dim]
+            )
         # self._network = self.network(self.inputs1, self.inputs2, self.inputs3, self.inputs4)
         t_vars = tf.trainable_variables()
-        self._network = self.network(self.inputs1, self.inputs2, self.inputs3, self.inputs4,
-                                     repeatnum=self._FLAGS.depth, basechannel=self._FLAGS.basechannel)
+        if self._FLAGS.AFC is 2:
+            image = tf.concat([self.inputs1, self.inputs2], axis=3)
+            self.labels = tf.placeholder(
+                tf.float16, [None, 2]
+            )
+        else:
+            image = tf.concat([self.inputs1, self.inputs2, self.inputs3, self.inputs4], axis=3)
+            self.labels = tf.placeholder(
+                tf.float16, [None, 4]
+            )
+        self._network = self.network(image, repeatnum=self._FLAGS.depth, basechannel=self._FLAGS.basechannel)
 
         self._loss = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits_v2(logits=self._network, labels=self.labels)
@@ -62,61 +69,191 @@ class STmodel(object):
         print("Set to data {}".format(dataset_name))
         self._dataset = loaddata(dataset_name, testrate=testrate)
 
-    def network(self, img1, img2, img3, img4, reuse=False, repeatnum=23, basechannel=64):
+    def network(self, image, reuse=False, repeatnum=23, basechannel=64):
         with tf.variable_scope('network') as scope:
             if reuse:
                 scope.reuse_variables()
-            image = tf.concat([img1, img2, img3, img4], axis=3)
             x = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
             for i in range(2, repeatnum):
                 x = conv2d(x, basechannel, name='d_conv'+str(i), activation='lrelu', padding='VALID')
-            result = fc(x, 4, activation='linear', name='d_fc')
+            result = fc(x, self._FLAGS.AFC, activation='linear', name='d_fc')
             return result
 
-    # def network(self, img1, img2, img3, img4, reuse=False):
-    #     with tf.variable_scope('network') as scope:
-    #         if reuse:
-    #             scope.reuse_variables()
-    #         # tempcon1 = tf.concat([img1, img2], axis=1)
-    #         # tempcon2 = tf.concat([img3, img4], axis=1)
-    #         # image = tf.concat([tempcon1, tempcon2], axis=2)
-    #         image = tf.concat([img1, img2, img3, img4], axis=3)
-    #         basechannel = 64
-    #         h1 = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
-    #         h2 = conv2d(h1, basechannel, name='d_conv2', activation='lrelu', padding='VALID')
-    #         h3 = conv2d(h2, basechannel, name='d_conv3', activation='lrelu', padding='VALID')
-    #         h4 = conv2d(h3, basechannel, name='d_conv4', activation='lrelu', padding='VALID')
-    #         h5 = conv2d(h4, basechannel, name='d_conv5', activation='lrelu', padding='VALID')
-    #         h6 = conv2d(h5, basechannel, name='d_conv6', activation='lrelu', padding='VALID')
-    #         h7 = conv2d(h6, basechannel, name='d_conv7', activation='lrelu', padding='VALID')
-    #         h8 = conv2d(h7, basechannel, name='d_conv8', activation='lrelu', padding='VALID')
-    #         h9 = conv2d(h8, basechannel, name='d_conv9', activation='lrelu', padding='VALID')
-    #         h10 = conv2d(h9, basechannel, name='d_conv10', activation='lrelu', padding='VALID')
-    #         h11 = conv2d(h10, basechannel, name='d_conv11', activation='lrelu', padding='VALID')
-    #         h12 = conv2d(h11, basechannel, name='d_conv12', activation='lrelu', padding='VALID')
-    #         h13 = conv2d(h12, basechannel, name='d_conv13', activation='lrelu', padding='VALID')
-    #         h14 = conv2d(h13, basechannel, name='d_conv14', activation='lrelu', padding='VALID')
-    #         h15 = conv2d(h14, basechannel, name='d_conv15', activation='lrelu', padding='VALID')
-    #         h16 = conv2d(h15, basechannel, name='d_conv16', activation='lrelu', padding='VALID')
-    #         h17 = conv2d(h16, basechannel, name='d_conv17', activation='lrelu', padding='VALID')
-    #         h18 = conv2d(h17, basechannel, name='d_conv18', activation='lrelu', padding='VALID')
-    #         h19 = conv2d(h18, basechannel, name='d_conv19', activation='lrelu', padding='VALID')
-    #         h20 = conv2d(h19, basechannel, name='d_conv20', activation='lrelu', padding='VALID')
-    #         h21 = conv2d(h20, basechannel, name='d_conv21', activation='lrelu', padding='VALID')
-    #         h22 = conv2d(h21, basechannel, name='d_conv22', activation='lrelu', padding='VALID')
-    #         h23 = conv2d(h22, basechannel, name='d_conv23', activation='lrelu', padding='VALID')
-    #         # h24 = conv2d(h23, basechannel, name='d_conv24', activation='lrelu', padding='VALID')
-    #         # h25 = conv2d(h24, basechannel, name='d_conv25', activation='lrelu', padding='VALID')
-    #         # h26 = conv2d(h25, basechannel, name='d_conv26', activation='lrelu', padding='VALID')
-    #         # h27 = conv2d(h26, basechannel, name='d_conv27', activation='lrelu', padding='VALID')
-    #         # h28 = conv2d(h27, basechannel, name='d_conv28', activation='lrelu', padding='VALID')
-    #         # h29 = conv2d(h28, basechannel, name='d_conv29', activation='lrelu', padding='VALID')
-    #         # h30 = conv2d(h29, basechannel, name='d_conv30', activation='lrelu', padding='VALID')
-    #         # h31 = conv2d(h30, basechannel, name='d_conv31', activation='lrelu', padding='VALID')
-    #         # h32 = conv2d(h31, basechannel, name='d_conv32', activation='lrelu', padding='VALID')
-    #         # GAP = GAPool(h17)
-    #         result = fc(h23, 4, activation='linear', name='d_fc')
-    #         return result
+
+
+    def train(self, epoch_num=5, lr=1e-4, beta1=0.5):
+        optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
+        tf.global_variables_initializer().run()
+
+        counter = 1
+        stopflag = True
+        start_time = time.time()
+        # if continued == True:
+        # ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+        # self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
+        for epoch in range(epoch_num):
+            while stopflag is True:
+                counter += 1
+                if self._FLAGS.AFC is 2:
+                    img1, img2, batch_label = self._dataset.train.next_batch(self._batch_size, must_full=True)
+                    self._sess.run(optim, feed_dict={
+                        self.inputs1: img1, self.inputs2: img2,
+                        self.labels: batch_label
+                    })
+                else:
+                    img1, img2, img3, img4, batch_label = self._dataset.train.next_batch(self._batch_size, must_full=True)
+                    self._sess.run(optim, feed_dict={
+                        self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
+                        self.labels: batch_label
+                    })
+                if np.mod(counter, 10) == 1:
+                    if self._FLAGS.AFC is 2:
+                        loss, accuracy, summary = self._sess.run([self._loss, self._accuracy, self.merged],
+                                                                 feed_dict={
+                                                                     self.inputs1: img1, self.inputs2: img2,
+                                                                     self.labels: batch_label
+                                                                 })
+                    else:
+                        loss, accuracy, summary = self._sess.run([self._loss, self._accuracy, self.merged],
+                                                                 feed_dict={
+                                                                     self.inputs1: img1, self.inputs2: img2,
+                                                                     self.inputs3: img3, self.inputs4: img4,
+                                                                     self.labels: batch_label
+                                                                 })
+                    # print("Epoch: [{0:2d}] [{1:4d}/{2:4d}] time: {3:4.4f}, loss: {4:.8f}, accuracy: {5:3.3f}".format(
+                    #     epoch, self._dataset.train.getposition, self._dataset.train.num_example,
+                    #     time.time() - start_time,
+                    #     loss, accuracy * 100
+                    # ))
+                    self.train_writer.add_summary(summary, counter)
+
+                if np.mod(counter, 5000) == 2:
+                    if not os.path.exists(self._checkpoint_dir):
+                        os.makedirs(self._checkpoint_dir)
+                    self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"),
+                                    global_step=counter)
+
+                if self._dataset.train.getposition == 0:
+                    stopflag = False
+                if np.mod(counter, 200) == 1:
+                    if self._FLAGS.AFC is 2:
+                        valdata1, valdata2, vallabel = self._dataset.val.next_batch(self._sample_num)
+                        loss, accuracy = self._sess.run([
+                            self._loss, self._accuracy],
+                            feed_dict={
+                                self.inputs1: valdata1, self.inputs2: valdata2,
+                                self.labels: vallabel
+                            })
+                    else:
+                        valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
+                        loss, accuracy, summary = self._sess.run([
+                            self._loss, self._accuracy, self.merged],
+                            feed_dict={
+                                self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3,
+                                self.inputs4: valdata4,
+                                self.labels: vallabel
+                            })
+                    print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
+                          (epoch, time.time() - start_time, loss, accuracy * 100)
+                          )
+                    self.test_writer.add_summary(summary, counter)
+            if self._FLAGS.AFC is 2:
+                valdata1, valdata2, vallabel = self._dataset.val.next_batch(self._sample_num)
+                loss, accuracy = self._sess.run([
+                    self._loss, self._accuracy],
+                    feed_dict={
+                        self.inputs1: valdata1, self.inputs2: valdata2,
+                        self.labels: vallabel
+                    })
+            else:
+                valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
+                loss, accuracy = self._sess.run([
+                    self._loss, self._accuracy],
+                    feed_dict={
+                        self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
+                        self.labels: vallabel
+                    })
+            print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
+                  (epoch, time.time() - start_time, loss, accuracy * 100)
+                  )
+            stopflag = True
+        # stopflag = True
+        # counter = 0
+        # loss = 0
+        # accuracy = 0
+        # while stopflag is True:
+        #     counter += 1
+        #     if self._FLAGS.AFC is 2:
+        #         img1, img2, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
+        #         temploss, tempaccuracy = self._sess.run([
+        #             self._loss, self._accuracy],
+        #             feed_dict={
+        #                 self.inputs1: img1, self.inputs2: img2,
+        #                 self.labels: batch_label
+        #             })
+        #     else:
+        #         img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
+        #         temploss, tempaccuracy = self._sess.run([
+        #             self._loss, self._accuracy],
+        #             feed_dict={
+        #                 self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
+        #                 self.labels: batch_label
+        #             })
+        #     loss += temploss
+        #     accuracy += tempaccuracy
+        #     print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
+        #         time.time() - start_time, temploss, tempaccuracy * 100))
+        #     if self._dataset.test.getposition == 0:
+        #         stopflag = False
+        # print("[Result] loss: {1:.8f}, accuracy: {2:3.3f}".format(
+        #     time.time() - start_time, loss / counter, accuracy * 100 / counter))
+
+        self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"), global_step=counter)
+
+    def loadandsampling(self, withsave=False):
+        ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+        self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
+        counter = 0
+        loss = 0
+        accuracy = 0
+        if withsave:
+            weights = {}
+            tvars = tf.trainable_variables()
+            tvars_vals = self._sess.run(tvars)
+            for var, val in zip(tvars, tvars_vals):
+                weights[var.name] = val
+            name = "{}.npy".format(self._checkpoint_dir)
+            np.save(name, weights)
+        start_time = time.time()
+        stopflag = True
+        while stopflag is True:
+            counter += 1
+            if self._FLAGS.AFC is 2:
+                img1, img2, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
+                temploss, tempaccuracy = self._sess.run([
+                    self._loss, self._accuracy],
+                    feed_dict={
+                        self.inputs1: img1, self.inputs2: img2,
+                        self.labels: batch_label
+                    })
+            else:
+                img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
+                temploss, tempaccuracy = self._sess.run([
+                    self._loss, self._accuracy],
+                    feed_dict={
+                        self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
+                        self.labels: batch_label
+                    })
+            loss += temploss
+            accuracy += tempaccuracy
+            print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
+                time.time() - start_time, temploss, tempaccuracy * 100
+            ))
+            if self._dataset.test.getposition == 0:
+                stopflag = False
+        print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
+            time.time() - start_time, loss / counter, accuracy * 100 / counter))
+
 
     # def network(selfself, img1, img2, img3, img4, reuse=False):
     #     def bottleneck(inputb, basechannel=12, name='bottlenect'):
@@ -229,131 +366,3 @@ class STmodel(object):
     #         h5 = fc(h3_pool, 128, activation='lrelu', name='d_fc_2', withdropout=True)
     #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
     #         return h6
-
-    def train(self, epoch_num=20, lr=1e-4, beta1=0.5):
-        optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
-        tf.global_variables_initializer().run()
-
-        counter = 1
-        stopflag = True
-        start_time = time.time()
-        # if continued == True:
-        # ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-        # self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
-        for epoch in range(epoch_num):
-            while stopflag is True:
-                counter += 1
-                img1, img2, img3, img4, batch_label = self._dataset.train.next_batch(self._batch_size, must_full=True)
-                self._sess.run(optim, feed_dict={
-                    self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-                    self.labels: batch_label
-                })
-                if np.mod(counter, 10) == 1:
-                    loss, accuracy, summary = self._sess.run([self._loss, self._accuracy, self.merged],
-                                                             feed_dict={
-                                                                 self.inputs1: img1, self.inputs2: img2,
-                                                                 self.inputs3: img3, self.inputs4: img4,
-                                                                 self.labels: batch_label
-                                                             })
-                    print("Epoch: [{0:2d}] [{1:4d}/{2:4d}] time: {3:4.4f}, loss: {4:.8f}, accuracy: {5:3.3f}".format(
-                        epoch, self._dataset.train.getposition, self._dataset.train.num_example,
-                        time.time() - start_time,
-                        loss, accuracy * 100
-                    ))
-                    self.train_writer.add_summary(summary, counter)
-
-                if np.mod(counter, 5000) == 2:
-                    if not os.path.exists(self._checkpoint_dir):
-                        os.makedirs(self._checkpoint_dir)
-                    self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"),
-                                    global_step=counter)
-
-                if self._dataset.train.getposition == 0:
-                    stopflag = False
-                if np.mod(counter, 200) == 1:
-                    valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
-                    loss, accuracy, summary = self._sess.run([
-                        self._loss, self._accuracy, self.merged],
-                        feed_dict={
-                            self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3,
-                            self.inputs4: valdata4,
-                            self.labels: vallabel
-                        })
-                    print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
-                          (epoch, time.time() - start_time, loss, accuracy * 100)
-                          )
-                    self.test_writer.add_summary(summary, counter)
-
-            valdata1, valdata2, valdata3, valdata4, vallabel = self._dataset.val.next_batch(self._sample_num)
-            loss, accuracy = self._sess.run([
-                self._loss, self._accuracy],
-                feed_dict={
-                    self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
-                    self.labels: vallabel
-                })
-            print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
-                  (epoch, time.time() - start_time, loss, accuracy * 100)
-                  )
-            stopflag = True
-        stopflag = True
-        counter = 0
-        loss = 0
-        accuracy = 0
-        while stopflag is True:
-            counter += 1
-            img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
-            temploss = self._loss.eval({
-                self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-                self.labels: batch_label
-            })
-            tempaccuracy = self._accuracy.eval({
-                self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-                self.labels: batch_label
-            })
-            loss += temploss
-            accuracy += tempaccuracy
-            print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
-                time.time() - start_time, temploss, tempaccuracy * 100))
-            if self._dataset.test.getposition == 0:
-                stopflag = False
-        print("[Result] loss: {1:.8f}, accuracy: {2:3.3f}".format(
-            time.time() - start_time, loss / counter, accuracy * 100 / counter))
-
-        self.saver.save(self._sess, os.path.join(self._checkpoint_dir, "observer.model"), global_step=counter)
-
-    def loadandsampling(self, withsave=False):
-        ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-        self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
-        counter = 0
-        loss = 0
-        accuracy = 0
-        if withsave:
-            weights = {}
-            tvars = tf.trainable_variables()
-            tvars_vals = self._sess.run(tvars)
-            for var, val in zip(tvars, tvars_vals):
-                weights[var.name] = val
-            name = "{}.npy".format(self._checkpoint_dir)
-            np.save(name, weights)
-        start_time = time.time()
-        stopflag = True
-        while stopflag is True:
-            counter += 1
-            img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(self._sample_num, must_full=True)
-            temploss = self._loss.eval({
-                self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-                self.labels: batch_label
-            })
-            tempaccuracy = self._accuracy.eval({
-                self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
-                self.labels: batch_label
-            })
-            loss += temploss
-            accuracy += tempaccuracy
-            print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
-                time.time() - start_time, temploss, tempaccuracy * 100
-            ))
-            if self._dataset.test.getposition == 0:
-                stopflag = False
-        print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
-            time.time() - start_time, loss / counter, accuracy * 100 / counter))

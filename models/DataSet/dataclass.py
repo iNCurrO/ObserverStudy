@@ -1,6 +1,7 @@
 import numpy
 import scipy.misc
 from random import shuffle
+import tensorflow as tf
 
 def imread(pathes):
     return numpy.array([(scipy.misc.imread(path) / 255) for path in pathes]).astype(numpy.float32)
@@ -67,43 +68,68 @@ class DataSet(object):
         return self._num_examples
 
     def next_batch(self, batch_size, fake_data=False, must_full=True):
-        start = self._index_in_epoch
-        self._index_in_epoch += batch_size
-        if self._index_in_epoch >= self._num_examples and must_full:
-            start = self._num_examples - batch_size
-            end = self._num_examples
-            self._index_in_epoch = 0
-            perm = numpy.arange(self._num_examples)
-            numpy.random.shuffle(perm)
-            self._images1 = self._images1[perm]
-            tempimages1 = imread(self._images1[start:end])[:, :, :, None]
-            perm = numpy.arange(self._num_examples)
-            numpy.random.shuffle(perm)
-            self._images2 = self._images2[perm]
+        if tf.app.flags.FLAGS.AFC is 2:
+            start = self._index_in_epoch
+            self._index_in_epoch += batch_size
+            if self._index_in_epoch >= self._num_examples and must_full:
+                start = self._num_examples - batch_size
+                end = self._num_examples
+                self._index_in_epoch = 0
+                perm = numpy.arange(self._num_examples)
+                numpy.random.shuffle(perm)
+                self._images1 = self._images1[perm]
+                tempimages1 = imread(self._images1[start:end])[:, :, :, None]
+                tempimages2 = imread(self._images2[start:end])[:, :, :, None]
+                perm = numpy.arange(self._num_examples)
+                numpy.random.shuffle(perm)
+                self._images2 = self._images2[perm]
+            else:
+                end = self._index_in_epoch
+                tempimages1 = imread(self._images1[start:end])[:, :, :, None]
+                tempimages2 = imread(self._images2[start:end])[:, :, :, None]
+            tempimages = numpy.asarray([tempimages1, tempimages2])
+            templabel = numpy.asarray([1, 0], dtype=numpy.int8)
+            templabels = numpy.asarray([templabel for _ in range(batch_size)])
+            tempimages, templabels = scrable(tempimages, templabels)
+            return tempimages[0], tempimages[1], templabels
         else:
-            end = self._index_in_epoch
-            tempimages1 = imread(self._images1[start:end])[:, :, :, None]
-        start = self._index_in_epoch2
-        self._index_in_epoch2 += batch_size
-        if self._index_in_epoch2 >= self._num_examples/3 and must_full:
-            num_batched = int(numpy.floor(self._num_examples/3))
-            start = num_batched - batch_size
-            end = num_batched
-            self._index_in_epoch2 = 0
-            tempimages2, tempimages3, tempimages4= imread(self._images2[start:end])[:, :, :, None], \
-                                                   imread(self._images2[start + num_batched:end + num_batched])[:, :, :, None], \
-                                                   imread(self._images2[start + 2 * num_batched:end + 2 * num_batched])[:, :, :, None]
-            perm = numpy.arange(self._num_examples)
-            numpy.random.shuffle(perm)
-            self._images2 = self._images2[perm]
-        else:
-            end = self._index_in_epoch2
-            num_batched = int(numpy.floor(self._num_examples/3))
-            tempimages2, tempimages3, tempimages4= imread(self._images2[start:end])[:, :, :, None], \
-                                                                imread(self._images2[start + num_batched:end + num_batched])[:, :, :, None], \
-                                                                imread(self._images2[start + 2 * num_batched:end + 2 * num_batched])[:, :, :, None]
-        tempimages = numpy.asarray([tempimages1, tempimages2, tempimages3, tempimages4])
-        templabel = numpy.asarray([1, 0, 0, 0], dtype=numpy.int8)
-        templabels = numpy.asarray([templabel for _ in range(batch_size)])
-        tempimages, templabels = scrable(tempimages, templabels)
-        return tempimages[0], tempimages[1], tempimages[2], tempimages[3], templabels
+            start = self._index_in_epoch
+            self._index_in_epoch += batch_size
+            if self._index_in_epoch >= self._num_examples and must_full:
+                start = self._num_examples - batch_size
+                end = self._num_examples
+                self._index_in_epoch = 0
+                perm = numpy.arange(self._num_examples)
+                numpy.random.shuffle(perm)
+                self._images1 = self._images1[perm]
+                tempimages1 = imread(self._images1[start:end])[:, :, :, None]
+                perm = numpy.arange(self._num_examples)
+                numpy.random.shuffle(perm)
+                self._images2 = self._images2[perm]
+            else:
+                end = self._index_in_epoch
+                tempimages1 = imread(self._images1[start:end])[:, :, :, None]
+            start = self._index_in_epoch2
+            self._index_in_epoch2 += batch_size
+            if self._index_in_epoch2 >= self._num_examples/3 and must_full:
+                num_batched = int(numpy.floor(self._num_examples/3))
+                start = num_batched - batch_size
+                end = num_batched
+                self._index_in_epoch2 = 0
+                tempimages2, tempimages3, tempimages4= imread(self._images2[start:end])[:, :, :, None], \
+                                                       imread(self._images2[start + num_batched:end + num_batched])[:, :, :, None], \
+                                                       imread(self._images2[start + 2 * num_batched:end + 2 * num_batched])[:, :, :, None]
+                perm = numpy.arange(self._num_examples)
+                numpy.random.shuffle(perm)
+                self._images2 = self._images2[perm]
+            else:
+                end = self._index_in_epoch2
+                num_batched = int(numpy.floor(self._num_examples/3))
+                tempimages2, tempimages3, tempimages4= imread(self._images2[start:end])[:, :, :, None], \
+                                                                    imread(self._images2[start + num_batched:end + num_batched])[:, :, :, None], \
+                                                                    imread(self._images2[start + 2 * num_batched:end + 2 * num_batched])[:, :, :, None]
+            tempimages = numpy.asarray([tempimages1, tempimages2, tempimages3, tempimages4])
+            templabel = numpy.asarray([1, 0, 0, 0], dtype=numpy.int8)
+            templabels = numpy.asarray([templabel for _ in range(batch_size)])
+            tempimages, templabels = scrable(tempimages, templabels)
+            return tempimages[0], tempimages[1], tempimages[2], tempimages[3], templabels
