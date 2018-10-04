@@ -20,7 +20,7 @@ class STmodel(object):
         self._checkpoint_dir = checkpoint_dir
         self._sample_dir = sample_dir
         self._c_dim = 1
-        self._dataset = loaddata(dataset_name, valrate=0.05, testrate=0.05)
+        self._dataset = loaddata(dataset_name, valrate=(1-0.05-self._FLAGS.datarate), testrate=0.05)
         # self._dataset = loaddata(dataset_name, valrate=0, testrate=1)
         self.inputs1 = tf.placeholder(
             tf.float32, [None, self._img_size, self._img_size, self._c_dim]
@@ -81,7 +81,7 @@ class STmodel(object):
 
 
 
-    def train(self, epoch_num=5, lr=1e-4, beta1=0.5):
+    def train(self, epoch_num=70, lr=1e-4, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
@@ -153,9 +153,9 @@ class STmodel(object):
                                 self.inputs4: valdata4,
                                 self.labels: vallabel
                             })
-                    print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
-                          (epoch, time.time() - start_time, loss, accuracy * 100)
-                          )
+                    # print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
+                    #       (epoch, time.time() - start_time, loss, accuracy * 100)
+                    #       )
                     self.test_writer.add_summary(summary, counter)
             if self._FLAGS.AFC is 2:
                 valdata1, valdata2, vallabel = self._dataset.val.next_batch(self._sample_num)
@@ -173,9 +173,9 @@ class STmodel(object):
                         self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
                         self.labels: vallabel
                     })
-            print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
-                  (epoch, time.time() - start_time, loss, accuracy * 100)
-                  )
+            # print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
+            #       (epoch, time.time() - start_time, loss, accuracy * 100)
+            #       )
             stopflag = True
         # stopflag = True
         # counter = 0
