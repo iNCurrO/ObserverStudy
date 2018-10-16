@@ -249,7 +249,7 @@ class STmodel(object):
             print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
                 time.time() - start_time, temploss, tempaccuracy * 100
             ))
-            if self._dataset.test.getposition == 0:
+            if self._dataset.test.getposition == 0 or counter==10:
                 stopflag = False
         print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
             time.time() - start_time, loss / counter, accuracy * 100 / counter))

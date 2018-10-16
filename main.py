@@ -21,51 +21,39 @@ def main(_):
     tf.app.flags.DEFINE_integer('AFC', 4, 'which AFC?')
     for tempwidth in [8, 16, 32]:
         for temp in [2, 4, 6, 8, 10, 12, 14]: # 32는 28부터 해야됭 >_<
-            for datarate in [0.0845]:
-                if 'depth' in list(tf.app.flags.FLAGS):
-                    delattr(tf.app.flags.FLAGS, 'depth')
-                    delattr(tf.app.flags.FLAGS, 'basechannel')
-                    delattr(tf.app.flags.FLAGS, 'datarate')
-                    tf.reset_default_graph()
-                tf.app.flags.DEFINE_integer('basechannel', tempwidth, "basechannelNum")
-                tf.app.flags.DEFINE_integer('depth', temp, 'repeat layer nums')
-                tf.app.flags.DEFINE_float('datarate', datarate, 'datarate')
-                with tf.Session(config=config) as sess:
-                    # ckdir = './floor' + str(FLAGS.depth) + '_ellipse_noPooling_channel' + str(FLAGS.basechannel) + '_ramp'
-                    ckdir = './floor' + str(FLAGS.depth) + '_circle_shallow_channel' + str(FLAGS.basechannel) + '_ramp'
-                    if FLAGS.AFC is 2:
-                        ckdir = ckdir + '_2AFC'
-                    else:
-                        ckdir = ckdir + '_4AFC'
-                    if datarate is not 0.9:
-                        ckdir = ckdir + '_datarate' + str(datarate)
-                    print(ckdir)
-                    start_time = time.time()
-                    srcnn = STmodel(sess, checkpoint_dir=ckdir,
-                                    sample_dir=None, dataset_name=['observer1mmtransramp'])
-                                    # sample_dir=None, dataset_name=['Observer_elipse_trans_ramp'])
-                    show_all_variables()
-                    print('!!{}sec to ready'.format(time.time()-start_time))
-                    srcnn.train()
-                    srcnn.loadandsampling()
-                    # srcnn.resetdata(dataset_name=['observer2mmtransramp'])
-                    # srcnn.loadandsampling()
-                    # srcnn.resetdata(dataset_name=['observer2mmtranshann'])
-                    # srcnn.loadandsampling()
-                    # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name='observerlongi')
-                    # show_all_variables()
-                    # srcnn.loadandsampling()
-                    # srcnn = STmodel(sess, checkpoint_dir=ckdir, sample_dir=None, dataset_name=['Observer_elipse_trans_ramp'])
-                    # show_all_variables()
-                    # srcnn.loadandsampling()
-                    # srcnn.resetdata(dataset_name=['observer1mmtranshann'])
-                    # srcnn.loadandsampling()
-                    # srcnn.resetdata(dataset_name=['observer1mmtransramp'])
-                    # srcnn.loadandsampling()
-                    # srcnn.resetdata(dataset_name=['Observer_elipse_trans_ramp'])
-                    # srcnn.loadandsampling()
-                    # srcnn.resetdata(dataset_name=['Observer_elipse_trans_hann'])
-                    # srcnn.loadandsampling()
+            for datarate in [0.15]:
+                for filtername in ['mix', 'hann']:
+                    for signalshape in ['elipse', 'circle']:
+                        if 'depth' in list(tf.app.flags.FLAGS):
+                            delattr(tf.app.flags.FLAGS, 'depth')
+                            delattr(tf.app.flags.FLAGS, 'basechannel')
+                            delattr(tf.app.flags.FLAGS, 'datarate')
+                            tf.reset_default_graph()
+                        tf.app.flags.DEFINE_integer('basechannel', tempwidth, "basechannelNum")
+                        tf.app.flags.DEFINE_integer('depth', temp, 'repeat layer nums')
+                        tf.app.flags.DEFINE_float('datarate', datarate, 'datarate')
+                        with tf.Session(config=config) as sess:
+                            # ckdir = './floor' + str(FLAGS.depth) + '_ellipse_noPooling_channel' + str(FLAGS.basechannel) + '_ramp'
+                            ckdir = './floor' + str(FLAGS.depth) + '_'+signalshape+'_shallow_channel' + str(FLAGS.basechannel) + '_' + filtername
+                            if FLAGS.AFC is 2:
+                                ckdir = ckdir + '_2AFC'
+                            else:
+                                ckdir = ckdir + '_4AFC'
+                            if datarate is not 0.9:
+                                ckdir = ckdir + '_datarate' + str(datarate)
+                            print(ckdir)
+                            start_time = time.time()
+                            if filtername is not 'mix':
+                                datasetname = ['Observer_' + signalshape + '_trans_' + filtername]
+                            else:
+                                datasetname = ['Observer_' + signalshape + '_trans_' + fn for fn in ['ramp', 'hann']]
+                            srcnn = STmodel(sess, checkpoint_dir=ckdir,
+                                            sample_dir=None, dataset_name=datasetname)
+                                            # sample_dir=None, dataset_name=['Observer_elipse_trans_ramp'])
+                            show_all_variables()
+                            print('!!{}sec to ready'.format(time.time()-start_time))
+                            srcnn.train()
+                            srcnn.loadandsampling()
 
 
 if __name__ == '__main__':
