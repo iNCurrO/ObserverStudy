@@ -14,7 +14,7 @@ class STmodel(object):
         self._img_size = img_size
 
         self._sample_num = sample_num
-        self._batch_size = batch_size
+        self._batch_size = self._FLAGS.batchnum
 
         self._dataset_name = dataset_name
         self._checkpoint_dir = checkpoint_dir
@@ -81,7 +81,7 @@ class STmodel(object):
 
 
 
-    def train(self, epoch_num=70, lr=1e-4, beta1=0.5):
+    def train(self, epoch_num=5, lr=1e-5, beta1=0.5):
         optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
 
@@ -216,6 +216,7 @@ class STmodel(object):
         counter = 0
         loss = 0
         accuracy = 0
+        accuracy_list = []
         if withsave:
             weights = {}
             tvars = tf.trainable_variables()
@@ -246,6 +247,7 @@ class STmodel(object):
                     })
             loss += temploss
             accuracy += tempaccuracy
+            accuracy_list += [tempaccuracy]
             print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
                 time.time() - start_time, temploss, tempaccuracy * 100
             ))
@@ -253,6 +255,7 @@ class STmodel(object):
                 stopflag = False
         print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
             time.time() - start_time, loss / counter, accuracy * 100 / counter))
+        print(accuracy_list)
 
 
     # def network(selfself, img1, img2, img3, img4, reuse=False):

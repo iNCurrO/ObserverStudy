@@ -82,7 +82,7 @@ def loaddata(dataname, valrate=0.2, testrate=0.1, dir_='D:\CTgit\Image'):
     for i in range(len(dataname)):
         templist1 = templist1 + glob.glob(os.path.join(data_dir_[0+2*i], '*'))
         templist2 = templist2 + glob.glob(os.path.join(data_dir_[1+2*i], '*'))
-    datanum = 200000
+    datanum = int(len(templist1)/len(dataname))
     numval = int(np.floor(valrate * datanum))
     numtest = int(np.floor(testrate * datanum))
     numtrain = datanum - numval - numtest
