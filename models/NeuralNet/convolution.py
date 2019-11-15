@@ -76,22 +76,22 @@ def makefilter(k, m):
         for i in range(pixel):
             for j in range(pixel):
                 ## this is gabor filter
-                for k_ in range(k):
-                    theta = np.mod(m_, directions) * np.pi / directions
-                    xprime = (i - np.floor(pixel / 2)) * np.cos(theta) + (j - np.floor(pixel / 2)) * np.sin(theta)
-                    yprime = (np.floor(pixel / 2) - i) * np.sin(theta) + (j - np.floor(pixel / 2)) * np.cos(theta)
-                    temp = np.exp(-(np.square(xprime) + np.square(yprime)) / 2 / 5 / 5) * np.cos(xprime / 2)
-                    if m_ // int(k) == k_:
-                        filt[i, j, k_, m_] = temp
-                    else:
-                        filt[i, j, k_, m_] = -temp
+                # for k_ in range(k):
+                #     theta = np.mod(m_, directions) * np.pi / directions
+                #     xprime = (i - np.floor(pixel / 2)) * np.cos(theta) + (j - np.floor(pixel / 2)) * np.sin(theta)
+                #     yprime = (np.floor(pixel / 2) - i) * np.sin(theta) + (j - np.floor(pixel / 2)) * np.cos(theta)
+                #     temp = np.exp(-(np.square(xprime) + np.square(yprime)) / 2 / 5 / 5) * np.cos(xprime / 2)
+                #     if m_ // int(k) == k_:
+                #         filt[i, j, k_, m_] = temp
+                #     else:
+                #         filt[i, j, k_, m_] = -temp
 
-            # # this is gaussian filter
-            # for k in range(m):
-            # 	if k == m_:
-            # 		filt[i, j, k, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
-            # 	else:
-            # 		filt[i, j, k, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+            # this is gaussian filter
+                for k_ in range(k):
+                    if k_ == m_:
+                        filt[i, j, k_, m_] = np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
+                    else:
+                        filt[i, j, k_, m_] = -np.exp(-(np.square(i-np.floor(pixel/2))+np.square(j-np.floor(pixel/2)))/(2*np.square(sigma)))#/(2*np.pi*np.square(sigma))
             # This is just circle filter
             # if np.sqrt(np.square(i-n-p.floor(pixel/2))+np.square(j-np.floor(pixel/2))) < diameter/pixel_size/2:
             # 	for k in range(m):
@@ -192,7 +192,7 @@ def GMPool(input_, name='GMP'):
     
 def fc(
         input_, output_dim, name='fc', keepprob=0.5, withdropout=False, activation='relu', withbatch=False,
-        issampling=False):
+        issampling=False, debugging=False):
     if len(input_.get_shape()) != 2:
         input_ = makeflat(input_)
     with tf.variable_scope(name):
@@ -206,9 +206,15 @@ def fc(
         else:
             h = act_func(tf.matmul(input_, w) + b, activation=activation)
         if withdropout:
-            return tf.nn.dropout(h, keep_prob=keepprob)
+            if debugging:
+                return tf.nn.dropout(h, keep_prob=keepprob), w
+            else:
+                return tf.nn.dropout(h, keep_prob=keepprob)
         else:
-            return h
+            if debugging:
+                return h, w
+            else:
+                return h
 
 
 def makeflat(input_):

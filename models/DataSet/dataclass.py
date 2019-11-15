@@ -1,10 +1,11 @@
 import numpy
-import scipy.misc
+import imageio
 from random import shuffle
 import tensorflow as tf
 
 def imread(pathes):
-    return numpy.array([(scipy.misc.imread(path) / 255) for path in pathes]).astype(numpy.float32)
+    # print(pathes)
+    return numpy.array([(imageio.imread(path) / 255) for path in pathes]).astype(numpy.float32)
 
 def scrable(a, b, axis=0):
     c = numpy.random.random(a.shape[0:2])
@@ -42,11 +43,9 @@ class DataSet(object):
         self._index_in_epoch2 = 0
         self._images1 = images1
         self._images2 = images2
-        # self._labels = label
         perm = numpy.arange(self._num_examples)
         numpy.random.shuffle(perm)
         self._images1 = self._images1[perm]
-        # self._labels = self._labels[perm]
         perm = numpy.arange(self._num_examples)
         numpy.random.shuffle(perm)
         self._images2 = self._images2[perm]
@@ -75,12 +74,11 @@ class DataSet(object):
                 start = self._num_examples - batch_size
                 end = self._num_examples
                 self._index_in_epoch = 0
-                perm = numpy.arange(self._num_examples)
-                numpy.random.shuffle(perm)
-                self._images1 = self._images1[perm]
                 tempimages1 = imread(self._images1[start:end])[:, :, :, None]
                 tempimages2 = imread(self._images2[start:end])[:, :, :, None]
                 perm = numpy.arange(self._num_examples)
+                numpy.random.shuffle(perm)
+                self._images1 = self._images1[perm]
                 numpy.random.shuffle(perm)
                 self._images2 = self._images2[perm]
             else:
@@ -99,13 +97,12 @@ class DataSet(object):
                 start = self._num_examples - batch_size
                 end = self._num_examples
                 self._index_in_epoch = 0
-                perm = numpy.arange(self._num_examples)
-                numpy.random.shuffle(perm)
-                self._images1 = self._images1[perm]
                 tempimages1 = imread(self._images1[start:end])[:, :, :, None]
                 perm = numpy.arange(self._num_examples)
                 numpy.random.shuffle(perm)
-                self._images2 = self._images2[perm]
+                self._images1 = self._images1[perm]
+                # numpy.random.shuffle(perm)
+                # self._images2 = self._images2[perm]
             else:
                 end = self._index_in_epoch
                 tempimages1 = imread(self._images1[start:end])[:, :, :, None]
