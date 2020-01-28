@@ -89,16 +89,22 @@ class cnnbased(object):
             tf.summary.image('plz', plz_0to255, max_outputs=1)
             return result
 
-    def train(self, epoch_num=100, lr=1e-2, beta1=0.5):
-        optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
-        tf.global_variables_initializer().run()
+    def train(self, epoch_num=100, lr=1e-2, beta1=0.5, continued=False):
 
+        if continued:
+            vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, "network/d_conv1/")
+            print(vars)
+            vars = tf.trainable_variables()
+            optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss, var_list=vars)
+        else:
+            optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
+        tf.global_variables_initializer().run()
         counter = 1
         stopflag = True
         start_time = time.time()
-        # if continued == True:
-        # ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-        # self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
+        if continued:
+            ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+            self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         for epoch in range(epoch_num):
             while stopflag is True:
                 counter += 1
@@ -128,11 +134,11 @@ class cnnbased(object):
                                                                      self.inputs3: img3, self.inputs4: img4,
                                                                      self.labels: batch_label
                                                                  })
-                    print("Epoch: [{0:2d}] [{1:4d}/{2:4d}] time: {3:4.4f}, loss: {4:.8f}, accuracy: {5:3.3f}".format(
-                        epoch, self._dataset.train.getposition, self._dataset.train.num_example,
-                        time.time() - start_time,
-                        loss, accuracy * 100
-                    ))
+                    # print("Epoch: [{0:2d}] [{1:4d}/{2:4d}] time: {3:4.4f}, loss: {4:.8f}, accuracy: {5:3.3f}".format(
+                    #     epoch, self._dataset.train.getposition, self._dataset.train.num_example,
+                    #     time.time() - start_time,
+                    #     loss, accuracy * 100
+                    # ))
                     self.train_writer.add_summary(summary, counter)
 
                 if np.mod(counter, 5000) == 2:
@@ -161,9 +167,9 @@ class cnnbased(object):
                                 self.inputs4: valdata4,
                                 self.labels: vallabel
                             })
-                    print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
-                          (epoch, time.time() - start_time, loss, accuracy * 100)
-                          )
+                    # print("Epoch: [{0:2d}] [Validation] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3:3.3f}".format
+                    #       (epoch, time.time() - start_time, loss, accuracy * 100)
+                    #       )
                     self.test_writer.add_summary(summary, counter)
             if self._FLAGS.AFC is 2:
                 valdata1, valdata2, vallabel = self._dataset.val.next_batch(self._sample_num)
@@ -181,9 +187,9 @@ class cnnbased(object):
                         self.inputs1: valdata1, self.inputs2: valdata2, self.inputs3: valdata3, self.inputs4: valdata4,
                         self.labels: vallabel
                     })
-            print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
-                  (epoch, time.time() - start_time, loss, accuracy * 100)
-                  )
+            # print("Validation result for Epoch [{0:2d}] time: {1:4.4f}, loss: {2:.8f}, accuracy: {3: 3.3f} ".format
+            #       (epoch, time.time() - start_time, loss, accuracy * 100)
+            #       )
             stopflag = True
         # stopflag = True
         # counter = 0
@@ -226,13 +232,11 @@ class cnnbased(object):
         accuracy = 0
         accuracy_list = []
         if withsave:
-            weights = {}
             tvars = tf.trainable_variables()
             tvars_vals = self._sess.run(tvars)
             for var, val in zip(tvars, tvars_vals):
-                weights[var.name] = val
-            name = "{}.npy".format(self._checkpoint_dir)
-            np.save(name, weights)
+                name = "{}.npy".format(self._checkpoint_dir+var.name.replace("/", "-").replace(".", "-").replace(":", "-"))
+                np.save(name, val)
         start_time = time.time()
         stopflag = True
         while stopflag is True:
@@ -257,9 +261,9 @@ class cnnbased(object):
             loss += temploss
             accuracy += tempaccuracy
             accuracy_list += [tempaccuracy]
-            print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
-                time.time() - start_time, temploss, tempaccuracy * 100
-            ))
+            # print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
+            #     time.time() - start_time, temploss, tempaccuracy * 100
+            # ))
             if self._dataset.test.getposition == 0 or counter==10:
                 stopflag = False
         print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
@@ -287,15 +291,6 @@ class cnnbased(object):
         realcount = 0
         while stopflag is True:
             counter += 1
-            # if self._FLAGS.AFC is 2:
-            #     img1, img2, batch_label = self._dataset.test.next_batch(1, must_full=True)
-            #     temploss, tempaccuracy, summary = self._sess.run([
-            #         self._loss, self._accuracy, self.merged],
-            #         feed_dict={
-            #             self.inputs1: img1, self.inputs2: img2,
-            #             self.labels: batch_label
-            #         })
-            # else:
             img1, img2, img3, img4, batch_label = self._dataset.test.next_batch(1, must_full=True)
             temploss, tempaccuracy, summary= self._sess.run([
                 self._loss, self._accuracy, self.merged],

@@ -52,6 +52,14 @@ class STmodel(object):
         self._loss = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits_v2(logits=self._network, labels=self.labels)
         )
+        # self._loss = tf.reduce_mean(
+        #     tf.nn.softmax_cross_entropy_with_logits_v2(logits=self._network, labels=self.labels)
+        # ) - tf.reduce_mean(
+        #     tf.cast(
+        #         tf.equal(tf.argmax(tf.nn.softmax(self._network), 1), tf.argmax(tf.nn.softmax(self.labels), 1)),
+        #         tf.float32
+        #     )
+        # )
         tf.summary.scalar("loss", self._loss)
         self._accuracy = tf.reduce_mean(
             tf.cast(
@@ -70,48 +78,15 @@ class STmodel(object):
         print("Set to data {}".format(dataset_name))
         self._dataset = loaddata(dataset_name, testrate=testrate)
 
-    # def network(self, image, reuse=False, repeatnum=23, basechannel=64):
-    #     with tf.variable_scope('network') as scope:
-    #         if reuse:
-    #             scope.reuse_variables()
-    #         x = conv2d(image, basechannel, name='d_conv1', activation='lrelu', padding='VALID')
-    #         for i in range(2, repeatnum):
-    #             x = conv2d(x, basechannel, name='d_conv'+str(i), activation='lrelu', padding='VALID')
-    #             # x_min = tf.reduce_min(x)
-    #             # x_max = tf.reduce_max(x)
-    #             # w_0to1 = (x-x_min) / (x_max-x_min)
-    #             # w_0to255 = tf.image.convert_image_dtype(w_0to1, dtype=tf.uint8)
-    #             # w_splited = tf.split(w_0to255, basechannel, axis=3)
-    #             # for k in range(basechannel):
-    #             #     tf.summary.image('filters_'+str(i)+'floor_'+str(k)+'th_', w_splited[k], max_outputs=1)
-    #             # w_sum = tf.reduce_sum(tf.convert_to_tensor(w_splited), axis=0)
-    #             # w_sum_min = tf.reduce_min(w_sum)
-    #             # w_sum_max = tf.reduce_max(w_sum)
-    #             # w_0to1 = (w_sum-w_sum_min) / (w_sum_max-w_sum_min)
-    #             # w_0to255 = tf.image.convert_image_dtype(w_0to1, dtype=tf.uint8)
-    #             # tf.summary.image('sumfilter'+str(i), w_0to255, max_outputs=5)
-    #         x_temp = x
-    #         result, w = fc(x, self._FLAGS.AFC, activation='linear', name='d_fc', debugging=True)
-    #         w_temp = w[:, 0]
-    #         plz_shape = x_temp.shape
-    #         plz = tf.multiply(x_temp, tf.reshape(w_temp, [plz_shape[1], plz_shape[2], plz_shape[3]]))
-    #         plz = tf.expand_dims(tf.reduce_sum(plz,3), -1)
-    #         plz_min = -1
-    #         plz_max = 1
-    #         plz_0to1 = (plz-plz_min)/(plz_max-plz_min)
-    #         plz_0to255 = tf.image.convert_image_dtype(plz_0to1, dtype=tf.uint8)
-    #         tf.summary.image('plz', plz_0to255, max_outputs=1)
-    #         return result
-    def train(self, epoch_num=300, lr=1e-2, beta1=0.5):
-        optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
+    def train(self, epoch_num=40, lr=1e-2, beta1=0.5, continued=False):
         tf.global_variables_initializer().run()
 
         counter = 1
         stopflag = True
         start_time = time.time()
-        # if continued == True:
-        # ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-        # self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
+        if continued:
+            ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+            self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         for epoch in range(epoch_num):
             while stopflag is True:
                 counter += 1
@@ -270,9 +245,9 @@ class STmodel(object):
             loss += temploss
             accuracy += tempaccuracy
             accuracy_list += [tempaccuracy]
-            print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
-                time.time() - start_time, temploss, tempaccuracy * 100
-            ))
+            # print("Validation result time: {0:4.4f}, loss: {1:.8f}, accuracy: {2: 3.3f}".format(
+            #     time.time() - start_time, temploss, tempaccuracy * 100
+            # ))
             if self._dataset.test.getposition == 0 or counter==10:
                 stopflag = False
         print("[Test Result] time: {0:4.4f}, loss: {1:.8f}, accuracy: {2:3.3f}".format(
@@ -362,57 +337,6 @@ class STmodel(object):
             time.time() - start_time, loss / counter, accuracy * 100 / counter))
         print(accuracy_list)
 
-
-    # def network(selfself, img1, img2, img3, img4, reuse=False):
-    #     def bottleneck(inputb, basechannel=12, name='bottlenect'):
-    #         with tf.variable_scope(name):
-    #             x_b = batch_norm(inputb, name='firstBN')
-    #             x_b = act_func(x_b, activation='relu')
-    #             x_b = conv2d(x_b, 4*basechannel, k=1, activation='linear', name='firstConv')
-    #             x_b = batch_norm(x_b, name='secondBN')
-    #             x_b = act_func(x_b, activation='relu')
-    #             x_b = conv2d(x_b, basechannel, k=3, activation='linear', name='secondConv')
-    #             return x_b
-    #
-    #     def transition(inputt, basechannel=12, name='transition'):
-    #         with tf.variable_scope(name):
-    #             x_t = batch_norm(inputt)
-    #             x_t = act_func(x_t, activation='relu')
-    #             x_t = conv2d(x_t, basechannel, k=1, activation='linear')
-    #             x_t = avgpool(x_t, k=2, s=2)
-    #             return x_t
-    #
-    #     def denseblock(inputd, nb_layers, basechannel= 12, name='denseblock'):
-    #         with tf.variable_scope(name):
-    #             layerslist = list()
-    #             layerslist.append(inputd)
-    #             x_ = bottleneck(inputd, basechannel=basechannel)
-    #             layerslist.append(x_)
-    #             for i_ in range(nb_layers - 1):
-    #                 x_ = concat(layerslist, axis=3)
-    #                 x_ = bottleneck(x_, name='bottle_N_'+str(i_+1), basechannel=basechannel)
-    #                 layerslist.append(x_)
-    #             x_ = concat(layerslist, axis=3)
-    #             return x_
-    #     with tf.variable_scope('network') as scope:
-    #         image = tf.concat([img1, img2, img3, img4], axis=3)
-    #         basechannel = 40
-    #         x = conv2d(image, output_dim=basechannel * 2, k=7, s=2, name='first_conv', activation='linear')
-    #         x = maxpool(x, k=3, s=2)
-    #         x = denseblock(x, nb_layers=6, basechannel=basechannel, name='denseblock_6')
-    #         x = transition(x, name='trans_6', basechannel=basechannel)
-    #         x = denseblock(x, nb_layers=12, basechannel=basechannel, name='denseblock_12')
-    #         x = transition(x, name='trans_12', basechannel=basechannel)
-    #         x = denseblock(x, nb_layers=64, basechannel=basechannel, name='denseblock_24')
-    #         x = transition(x, name='trans_64', basechannel=basechannel)
-    #         x = denseblock(x, nb_layers=48, name='denseblock_final')
-    #         x = batch_norm(x)
-    #         x = act_func(x, activation='relu')
-    #         x = GAPool(x)
-    #         result = fc(x, 4, activation='linear')
-    #         return result
-
-
     def network(self, image, reuse=False):
         with tf.variable_scope('network') as scope:
             if reuse:
@@ -443,39 +367,3 @@ class STmodel(object):
             # fc2 = fc(h0_0, 128, activation='linear', name='d_fc1', withdropout=True)
             h5 = fc(h0_0, self._FLAGS.AFC, activation='linear', name='d_fc2', withdropout=False)
             return h5
-
-    # def network(self, img1, img2, img3, img4, reuse=False):
-    #     with tf.variable_scope('network') as scope:
-    #         if reuse:
-    #             scope.reuse_variables()
-    #         # tempcon1 = tf.concat([img1, img2], axis=1)
-    #         # tempcon2 = tf.concat([img3, img4], axis=1)
-    #         # image = tf.concat([tempcon1, tempcon2], axis=2)
-    #         print(img1.shape)
-    #         image = tf.concat([img1, img2, img3, img4], axis=3)
-    #         basechannel = 16
-    #         h0_0 = conv2d(image, basechannel, name='d_conv0_0', activation='lrelu')
-    #         # h0_1 = conv2d(h0_0, basechannel, name='d_conv0_1', activation='lrelu', withbatch=False)
-    #         # h0_2 = conv2d(h0_1, basechannel, name='d_conv0_2', activation='lrelu', withbatch=False)
-    #         h0_pool = avgpool(h0_0, k=5, s=2, name='d_conv0_maxpool')
-    #
-    #         h1_0 = conv2d(h0_pool, basechannel * 2, name='d_conv1_0', activation='lrelu')
-    #         # h1_1 = conv2d(h1_0, basechannel*2, name='d_conv1_1', activation='lrelu', withbatch=False)
-    #         # h1_2 = conv2d(h1_1, basechannel*2, name='d_conv1_2', activation='lrelu', withbatch=False)
-    #         h1_pool = avgpool(h1_0, k=5, s=2, name='d_conv1_maxpool')
-    #         #
-    #         h2_0 = conv2d(h1_pool, basechannel * 3, name='d_conv2_0', activation='lrelu')
-    #         # h2_1 = conv2d(h2_0, basechannel*4, name='d_conv2_1', activation='lrelu', withbatch=False)
-    #         # h2_2 = conv2d(h2_1, basechannel*4, name='d_conv2_2', activation='lrelu', withbatch=False)
-    #         h2_pool = avgpool(h2_0, k=5, s=2, name='d_conv2_maxpool')
-    #         # #
-    #         h3_0 = conv2d(h2_pool, basechannel * 4, name='d_conv3_0', activation='lrelu')
-    #         # h3_1 = conv2d(h3_0, basechannel*8, name='d_conv3_1', activation='lrelu', withbatch=False)
-    #         # h3_2 = conv2d(h3_1, basechannel*8, name='d_conv3_2', activation='lrelu', withbatch=False)
-    #         h3_pool = avgpool(h3_0, k=5, s=2, name='d_conv3_maxpool')
-    #
-    #         # h4 = fc(h1_pool, 1024, activation='lrelu', name='d_fc_1')
-    #         # h4 = tf.nn.dropout(h4, keep_prob=0.5)
-    #         h5 = fc(h3_pool, 128, activation='lrelu', name='d_fc_2', withdropout=True)
-    #         h6 = fc(h5, 4, activation='linear', name='d_fc_3')
-    #         return h6
