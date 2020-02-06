@@ -91,23 +91,18 @@ class cnnbased(object):
 
     def train(self, epoch_num=100, lr=1e-2, beta1=0.5, continued=False):
 
-        if continued:
-            vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, "network/d_conv1/")
-            print(vars)
-            vars = tf.trainable_variables()
-            optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss, var_list=vars)
-        else:
-            optim = tf.train.AdamOptimizer(learning_rate=lr).minimize(self._loss)
         tf.global_variables_initializer().run()
         counter = 1
         stopflag = True
         start_time = time.time()
+        # Load model
         if continued:
             ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
             self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))
         for epoch in range(epoch_num):
             while stopflag is True:
                 counter += 1
+                # Load batch
                 if self._FLAGS.AFC is 2:
                     img1, img2, batch_label = self._dataset.train.next_batch(self._batch_size, must_full=True)
                     self._sess.run(optim, feed_dict={
@@ -120,6 +115,7 @@ class cnnbased(object):
                         self.inputs1: img1, self.inputs2: img2, self.inputs3: img3, self.inputs4: img4,
                         self.labels: batch_label
                     })
+                # Training (calculate backward loss)
                 if np.mod(counter, 10) == 1:
                     if self._FLAGS.AFC is 2:
                         loss, accuracy, summary = self._sess.run([self._loss, self._accuracy, self.merged],
@@ -140,7 +136,7 @@ class cnnbased(object):
                     #     loss, accuracy * 100
                     # ))
                     self.train_writer.add_summary(summary, counter)
-
+                # Save point
                 if np.mod(counter, 5000) == 2:
                     if not os.path.exists(self._checkpoint_dir):
                         os.makedirs(self._checkpoint_dir)
@@ -149,6 +145,7 @@ class cnnbased(object):
 
                 if self._dataset.train.getposition == 0:
                     stopflag = False
+                # Validation result
                 if np.mod(counter, 200) == 1:
                     if self._FLAGS.AFC is 2:
                         valdata1, valdata2, vallabel = self._dataset.val.next_batch(self._sample_num)
@@ -171,6 +168,7 @@ class cnnbased(object):
                     #       (epoch, time.time() - start_time, loss, accuracy * 100)
                     #       )
                     self.test_writer.add_summary(summary, counter)
+            # Validation result every epoch
             if self._FLAGS.AFC is 2:
                 valdata1, valdata2, vallabel = self._dataset.val.next_batch(self._sample_num)
                 loss, accuracy = self._sess.run([
@@ -191,6 +189,7 @@ class cnnbased(object):
             #       (epoch, time.time() - start_time, loss, accuracy * 100)
             #       )
             stopflag = True
+        # Validation results after all training done
         # stopflag = True
         # counter = 0
         # loss = 0
@@ -270,7 +269,7 @@ class cnnbased(object):
             time.time() - start_time, loss / counter, accuracy * 100 / counter))
         print(accuracy_list)
 
-
+    # Load and sampling with activation map saving
     def loadandsampling_CAM(self, withsave=False):
         ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
         self.saver.restore(self._sess, os.path.join(self._checkpoint_dir, os.path.basename(ckpt.model_checkpoint_path)))

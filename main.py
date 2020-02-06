@@ -24,22 +24,27 @@ def floatrange(start, end, step):
 def main(_):#withtransferlearning(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
+    # AFC select: 2AFC or 4AFC
     tf.app.flags.DEFINE_integer('AFC', 4, 'which AFC?')
+    # Give option list,
     optionlist = [('circle', 'hann', 'spiculated', 'hann', 32, 8)]
-    # hyperoption = [(lr, bn) for lr in [0.00002, 0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1] for bn in [2, 4, 8, 16, 32, 64]]
+    # option list for loop
     for (startshape, startfilter, endshape, endfilter, width, depth) in optionlist:
-        for datarate in [1,2,3,4,5,6,7]:
+        for datarate in [1, 2, 3, 4, 5, 6, 7]:
             print('=======================================================================================')
             if 'depth' in list(tf.app.flags.FLAGS):
+                # flag reset
                 delattr(tf.app.flags.FLAGS, 'depth')
                 delattr(tf.app.flags.FLAGS, 'basechannel')
                 delattr(tf.app.flags.FLAGS, 'datarate')
                 tf.reset_default_graph()
             tf.app.flags.DEFINE_integer('basechannel', width, "basechannelNum")
             tf.app.flags.DEFINE_integer('depth', depth, 'repeat layer nums')
+            # Give datarate percentage (How many dataset should be used for training.
             tf.app.flags.DEFINE_float('datarate', 0.0573591, 'datarate')
-            # tf.app.flags.DEFINE_float('datarate', 0.0375*datarate, 'datarate')
+            tf.app.flags.DEFINE_float('datarate', 0.0375*datarate, 'datarate')
             with tf.Session(config=config) as sess:
+                # save file directory
                 ckdir = './transferlearning_depth' + str(FLAGS.depth) +'_channel' + str(
                     FLAGS.basechannel) + '_from' +  startshape + startfilter + '_to' + endshape + endfilter+'_datarate'+str(datarate)
                 ckdir += 'yes'
@@ -53,20 +58,16 @@ def main(_):#withtransferlearning(_):
                     datasetname = ['white']
                 else:
                     datasetname = ['Observer_' + startshape + '_trans_' + startfilter]
+                    # cnnbased -> CNN-based model observer, SingleTower -> SLCNN
                 model = cnnbased(sess, checkpoint_dir=ckdir,
                                 sample_dir=None, dataset_name=datasetname)
                 print('!!{}sec to ready'.format(time.time()-start_time))
-                # show_all_variables()
-                # model.train()
-                # model.loadandsampling()
-                if endfilter == 'white':
-                    datasetname = ['white']
-                else:
-                    datasetname = ['Observer_' + endshape + '_trans_' + endfilter]
-                model.resetdata(dataset_name=datasetname, datarate=0.0375*datarate)
-                # model.loadandsampling()
-                # model.train(continued=True)
+                show_all_variables()
+                model.train()
+                model.loadandsampling()
+                # Transfer learning.
                 print('After tf---------------------------------------')
+                model.train(continued=True)
                 model.loadandsampling()
 
 
